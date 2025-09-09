@@ -7,6 +7,7 @@ namespace PicSocial.Server.Models
 {
     public class ApplicationUser : IdentityUser
     {
+        public string? FullName { get; set; }
         public string? Bio { get; set; }
         public string? ProfilePictureUrl { get; set; }
         public string? Location { get; set; }
