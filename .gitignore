@@ -11,7 +11,7 @@ obj/
 *.bak
 *.ldf
 *.mdf
-
+PicSocial.Server/PicSocial.Server/Migrations/
 # Visual Studio
 .vs/
 

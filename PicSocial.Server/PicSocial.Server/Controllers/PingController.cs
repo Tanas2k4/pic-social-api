@@ -7,7 +7,7 @@ namespace PicSocial.Server.Controllers
     public class PingController : ControllerBase
     {      
         [HttpGet]
-        public IActionResult GetALl() => Ok (new { message = "pong" });   //Sử dụng để test API + hiển thị      
+        public IActionResult GetALl() => Ok (new { message = "yeah" });   //Sử dụng để test API + hiển thị      
     }
 }
 

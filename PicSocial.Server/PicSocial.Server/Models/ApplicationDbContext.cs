@@ -67,7 +67,8 @@ namespace PicSocial.Server.Models
             builder.Entity<PhotoVersion>()
                 .HasOne(pv => pv.Photo)
                 .WithMany(p => p.Versions)
-                .HasForeignKey(pv => pv.PhotoId);
+                .HasForeignKey(pv => pv.PhotoId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             // Configure PhotoMetadata
             builder.Entity<PhotoMetadata>()
@@ -75,7 +76,11 @@ namespace PicSocial.Server.Models
             builder.Entity<PhotoMetadata>()
                 .HasOne(pm => pm.Photo)
                 .WithOne(p => p.Metadata)
-                .HasForeignKey<PhotoMetadata>(pm => pm.PhotoId);
+                .HasForeignKey<PhotoMetadata>(pm => pm.PhotoId)
+                .OnDelete(DeleteBehavior.Cascade);
+            builder.Entity<PhotoMetadata>()
+                .Property(pm => pm.Aperture)
+                .HasPrecision(4, 2); // decimal(4,2) for aperture values like f/1.4, f/2.8
             builder.Entity<PhotoMetadata>()
                 .HasIndex(pm => pm.Lens);
             builder.Entity<PhotoMetadata>()
@@ -96,11 +101,13 @@ namespace PicSocial.Server.Models
             builder.Entity<PhotoLicense>()
                 .HasOne(pl => pl.Photo)
                 .WithOne(p => p.License)
-                .HasForeignKey<PhotoLicense>(pl => pl.PhotoId);
+                .HasForeignKey<PhotoLicense>(pl => pl.PhotoId)
+                .OnDelete(DeleteBehavior.Cascade);
             builder.Entity<PhotoLicense>()
                 .HasOne(pl => pl.License)
                 .WithMany(l => l.PhotoLicenses)
-                .HasForeignKey(pl => pl.LicenseId);
+                .HasForeignKey(pl => pl.LicenseId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             // Configure Albums
             builder.Entity<Album>()
@@ -114,11 +121,13 @@ namespace PicSocial.Server.Models
             builder.Entity<AlbumPhoto>()
                 .HasOne(ap => ap.Album)
                 .WithMany(a => a.AlbumPhotos)
-                .HasForeignKey(ap => ap.AlbumId);
+                .HasForeignKey(ap => ap.AlbumId)
+                .OnDelete(DeleteBehavior.Cascade);
             builder.Entity<AlbumPhoto>()
                 .HasOne(ap => ap.Photo)
                 .WithMany(p => p.AlbumPhotos)
-                .HasForeignKey(ap => ap.PhotoId);
+                .HasForeignKey(ap => ap.PhotoId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             // Configure Tags
             builder.Entity<Tag>()
@@ -133,11 +142,13 @@ namespace PicSocial.Server.Models
             builder.Entity<PhotoTag>()
                 .HasOne(pt => pt.Photo)
                 .WithMany(p => p.PhotoTags)
-                .HasForeignKey(pt => pt.PhotoId);
+                .HasForeignKey(pt => pt.PhotoId)
+                .OnDelete(DeleteBehavior.Cascade);
             builder.Entity<PhotoTag>()
                 .HasOne(pt => pt.Tag)
                 .WithMany(t => t.PhotoTags)
-                .HasForeignKey(pt => pt.TagId);
+                .HasForeignKey(pt => pt.TagId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             // Configure Comments
             builder.Entity<Comment>()
@@ -145,9 +156,20 @@ namespace PicSocial.Server.Models
             builder.Entity<Comment>()
                 .HasIndex(c => c.PhotoId);
             builder.Entity<Comment>()
+                .HasOne(c => c.Photo)
+                .WithMany(p => p.Comments)
+                .HasForeignKey(c => c.PhotoId)
+                .OnDelete(DeleteBehavior.Cascade);
+            builder.Entity<Comment>()
+                .HasOne(c => c.User)
+                .WithMany()
+                .HasForeignKey(c => c.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+            builder.Entity<Comment>()
                 .HasOne(c => c.ParentComment)
                 .WithMany(c => c.ChildComments)
-                .HasForeignKey(c => c.ParentCommentId);
+                .HasForeignKey(c => c.ParentCommentId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             // Configure Likes
             builder.Entity<Like>()
@@ -157,12 +179,32 @@ namespace PicSocial.Server.Models
                 .IsUnique();
             builder.Entity<Like>()
                 .HasIndex(l => l.PhotoId);
+            builder.Entity<Like>()
+                .HasOne(l => l.Photo)
+                .WithMany(p => p.Likes)
+                .HasForeignKey(l => l.PhotoId)
+                .OnDelete(DeleteBehavior.Cascade);
+            builder.Entity<Like>()
+                .HasOne(l => l.User)
+                .WithMany()
+                .HasForeignKey(l => l.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             // Configure Shares
             builder.Entity<Share>()
                 .HasKey(s => s.ShareId);
             builder.Entity<Share>()
                 .HasIndex(s => s.PhotoId);
+            builder.Entity<Share>()
+                .HasOne(s => s.Photo)
+                .WithMany(p => p.Shares)
+                .HasForeignKey(s => s.PhotoId)
+                .OnDelete(DeleteBehavior.Cascade);
+            builder.Entity<Share>()
+                .HasOne(s => s.User)
+                .WithMany()
+                .HasForeignKey(s => s.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             // Configure Reports
             builder.Entity<Report>()
@@ -171,19 +213,17 @@ namespace PicSocial.Server.Models
                 .HasIndex(r => r.Status);
             builder.Entity<Report>()
                 .HasIndex(r => r.PhotoId);
+            builder.Entity<Report>()
+                .HasOne(r => r.Photo)
+                .WithMany(p => p.Reports)
+                .HasForeignKey(r => r.PhotoId)
+                .OnDelete(DeleteBehavior.Cascade);
+            builder.Entity<Report>()
+                .HasOne(r => r.User)
+                .WithMany()
+                .HasForeignKey(r => r.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
 
-            //// Seed Roles
-            //builder.Entity<IdentityRole>().HasData(
-            //    new IdentityRole { Id = Guid.NewGuid().ToString(), Name = "Admin", NormalizedName = "ADMIN" },
-            //    new IdentityRole { Id = Guid.NewGuid().ToString(), Name = "User", NormalizedName = "USER" }
-            //);
-
-            //// Seed Licenses
-            //builder.Entity<License>().HasData(
-            //    new License { LicenseId = Guid.NewGuid(), Name = "All Rights Reserved", Description = "All rights reserved by the photographer." },
-            //    new License { LicenseId = Guid.NewGuid(), Name = "CC-BY", Description = "Creative Commons Attribution." },
-            //    new License { LicenseId = Guid.NewGuid(), Name = "Royalty-Free", Description = "Royalty-free license for commercial use." }
-            //);
         }
     }
 }
