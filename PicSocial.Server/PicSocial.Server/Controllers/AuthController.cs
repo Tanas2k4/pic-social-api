@@ -35,7 +35,7 @@ namespace PicSocial.Server.Controllers
             {
                 Email = registerDto.Email,
                 UserName = registerDto.UserName,
-                FullName = registerDto.FullName,
+                FirstName = registerDto.FirstName,
             };
 
             var result = await _userManager.CreateAsync(user, registerDto.Password);

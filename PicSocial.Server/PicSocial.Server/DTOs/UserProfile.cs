@@ -1,0 +1,13 @@
+namespace PicSocial.Server.DTOs
+{
+    public class UserProfileDto
+    {
+        public string UserName { get; set; } = null!;
+        public string? FirstName { get; set; }
+        public string? Bio { get; set; }
+        public string? AvatarUrl { get; set; }
+        public string? CoverPhotoUrl { get; set; }
+        public string? Location { get; set; }       
+       
+    }
+}
