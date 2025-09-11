@@ -12,6 +12,7 @@ obj/
 *.ldf
 *.mdf
 PicSocial.Server/PicSocial.Server/Migrations/
+PicSocial.Server/PicSocial.Server/appsettings.json
 # Visual Studio
 .vs/
 
