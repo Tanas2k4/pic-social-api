@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using PicSocial.Server.DTOs;
-
+using PicSocial.Server.Models;
 
 namespace PicSocial.Server.Controllers
 {
@@ -11,8 +11,8 @@ namespace PicSocial.Server.Controllers
     [Authorize] //Chỉ cho phép người dùng đã xác thực truy cập
     public class ProfileController : ControllerBase
     {
-        private readonly UserManager<Models.ApplicationUser> _userManager;
-        public ProfileController(UserManager<Models.ApplicationUser> userManager)
+        private readonly UserManager<ApplicationUser> _userManager;
+        public ProfileController(UserManager<ApplicationUser> userManager)
         {
             _userManager = userManager;
         }
@@ -42,7 +42,7 @@ namespace PicSocial.Server.Controllers
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
                 return Unauthorized();
-
+            
             //Cập nhật thông tin người dùng
             //Cập nhật theo từng trường nếu nó không null hoặc rỗng
             if (!string.IsNullOrWhiteSpace(updateProfileDto.FirstName))
