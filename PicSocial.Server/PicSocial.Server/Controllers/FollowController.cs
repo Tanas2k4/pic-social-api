@@ -7,6 +7,7 @@ using PicSocial.Server.DTOs;
 using PicSocial.Server.Models;
 using PicSocial.Server.Models.Entities;
 
+
 namespace PicSocial.Server.Controllers
 {
     [ApiController]
@@ -21,8 +22,8 @@ namespace PicSocial.Server.Controllers
             _context = context;
         }
 
-        // POST api/follow/ //id là id của người mà bạn muốn follow
-        [HttpPost]
+        // POST api/follow/AddFollow //id là id của người mà bạn muốn follow
+        [HttpPost("addFollow")]
         public async Task<IActionResult> FollowUser([FromBody] FollowDto followDto)
         {
             var currentUser = await _userManager.GetUserAsync(User);
@@ -44,7 +45,7 @@ namespace PicSocial.Server.Controllers
             {
                 FollowerId = currentUser.Id,
                 FollowedId = followDto.Id,
-                CreatedDate = DateTimeOffset.UtcNow
+                CreatedDate = DateTimeOffset.Now
             };
             _context.Follows.Add(follow);
             await _context.SaveChangesAsync();
