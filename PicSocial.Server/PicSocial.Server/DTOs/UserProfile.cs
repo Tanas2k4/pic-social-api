@@ -7,7 +7,7 @@ namespace PicSocial.Server.DTOs
         public string? Bio { get; set; }
         public string? AvatarUrl { get; set; }
         public string? CoverPhotoUrl { get; set; }
-        public string? Location { get; set; }       
+        public string? Location { get; set; } //use later  
        
     }
 }
