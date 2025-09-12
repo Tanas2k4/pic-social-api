@@ -6,7 +6,7 @@ using PicSocial.Server.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-
+using PicSocial.Server.Services;
 var builder = WebApplication.CreateBuilder(args);
 //Add DbContext     
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -39,6 +39,8 @@ builder.Services.AddAuthentication(options =>
 // Add services to the container.
 builder.Services.AddControllers();
 
+// Add Google Cloud Storage service
+builder.Services.AddSingleton<GoogleCloudStorageService>();
 // Swagger/OpenAPI
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
