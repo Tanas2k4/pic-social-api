@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using PicSocial.Server.Models.Entities;
@@ -26,7 +26,7 @@ namespace PicSocial.Server.Models
         public DbSet<Like> Likes { get; set; }
         public DbSet<Share> Shares { get; set; }
         public DbSet<Report> Reports { get; set; }
-
+        public DbSet<Post> Posts { get; set; }
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -50,16 +50,16 @@ namespace PicSocial.Server.Models
 
             // Configure Photos
             builder.Entity<Photo>()
-                .HasKey(p => p.PhotoId);
+                .HasOne(p => p.Post)
+                .WithMany(p => p.Photos)
+                .HasForeignKey(p => p.PostId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             builder.Entity<Photo>()
-                .HasIndex(p => p.UserId);
-            builder.Entity<Photo>()
-                .HasIndex(p => p.CreatedDate);
-            builder.Entity<Photo>()
-                .HasIndex(p => p.Visibility);
-            builder.Entity<Photo>()
-                .Property(p => p.Visibility)
-                .HasDefaultValue("Public");
+                .HasOne(p => p.User)
+                .WithMany(u => u.Photos)
+                .HasForeignKey(p => p.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             // Configure PhotoVersions
             builder.Entity<PhotoVersion>()
@@ -224,6 +224,15 @@ namespace PicSocial.Server.Models
                 .HasForeignKey(r => r.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // Configure Posts
+            builder.Entity<Post>()
+                .HasKey(p => p.PostId);
+
+            builder.Entity<Post>()
+                .HasOne(p => p.User)
+                .WithMany(u => u.Posts)
+                .HasForeignKey(p => p.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

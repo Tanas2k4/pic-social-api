@@ -7,6 +7,7 @@ namespace PicSocial.Server.Models.Entities
     public class Photo : IDateTracking
     {
         public Guid PhotoId { get; set; } = Guid.NewGuid();
+        public Guid PostId { get; set; }
         public string UserId { get; set; } = null!;
         public string? Title { get; set; }
         public string? Description { get; set; }
@@ -20,6 +21,7 @@ namespace PicSocial.Server.Models.Entities
         public int ViewCount { get; set; } = 0;
 
         // Navigation properties
+        public Post Post { get; set; } = null!;
         public ApplicationUser User { get; set; } = null!;
         public PhotoMetadata? Metadata { get; set; }
         public PhotoLicense? License { get; set; }

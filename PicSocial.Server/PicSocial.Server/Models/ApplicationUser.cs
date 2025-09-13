@@ -25,5 +25,6 @@ namespace PicSocial.Server.Models
         public ICollection<Like> Likes { get; set; } = new List<Like>();
         public ICollection<Share> Shares { get; set; } = new List<Share>();
         public ICollection<Report> Reports { get; set; } = new List<Report>();
+        public ICollection<Post> Posts { get; set; } = new List<Post>();
     }
 }
