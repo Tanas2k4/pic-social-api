@@ -1,4 +1,3 @@
-using Microsoft.Identity.Client.Extensions.Msal;
 using Google.Cloud.Storage.V1;
 
 namespace PicSocial.Server.Services
@@ -10,8 +9,8 @@ namespace PicSocial.Server.Services
 
         public GoogleCloudStorageService(IConfiguration configuration)
         {
-            var bucket = configuration["GoogleCloud:BucketName"];
-            var credentialsPath = configuration["GoogleCloudStorage:CredentialsFile"];
+            var bucket = configuration["GoogleCloudStorage:BucketName"];
+            var credentialsPath = configuration["GoogleCloudStorage:CredentialsPath"];
 
             _storageClient = StorageClient.Create(
                 Google.Apis.Auth.OAuth2.GoogleCredential.FromFile(credentialsPath)
