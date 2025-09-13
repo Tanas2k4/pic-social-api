@@ -53,7 +53,7 @@ namespace PicSocial.Server.Controllers
         }
 
         // DELETE api/follow/{id} //id là id của người mà bạn muốn unfollow
-        [HttpDelete("{id}")]
+        [HttpDelete("unFollow/{id}")]
         public async Task<IActionResult> UnfollowUser(string id)
         {
             var currentUser = await _userManager.GetUserAsync(User);
