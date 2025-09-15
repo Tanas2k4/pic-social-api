@@ -12,7 +12,7 @@ obj/
 *.ldf
 *.mdf
 PicSocial.Server/PicSocial.Server/Migrations/
-PicSocial.Server/PicSocial.Server/appsettings.json
+
 # Visual Studio
 .vs/
 
@@ -57,3 +57,9 @@ Thumbs.db
 .env.development.local
 .env.test.local
 .env.production.local
+
+#key files
+PicSocial.Server/PicSocial.Server/gcs-key.json
+
+#appsetting.json
+PicSocial.Server/PicSocial.Server/appsettings.json

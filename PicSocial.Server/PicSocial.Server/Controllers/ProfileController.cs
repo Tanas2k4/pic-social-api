@@ -1,8 +1,11 @@
+using System.Net;
+using System.Net.WebSockets;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using PicSocial.Server.DTOs;
 using PicSocial.Server.Models;
+using PicSocial.Server.Services;
 
 namespace PicSocial.Server.Controllers
 {
@@ -42,20 +45,13 @@ namespace PicSocial.Server.Controllers
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
                 return Unauthorized();
-            
             //Cập nhật thông tin người dùng
             //Cập nhật theo từng trường nếu nó không null hoặc rỗng
             if (!string.IsNullOrWhiteSpace(updateProfileDto.FirstName))
                 user.FirstName = updateProfileDto.FirstName;
 
-            if(!string.IsNullOrWhiteSpace(updateProfileDto.Bio))
+            if (!string.IsNullOrWhiteSpace(updateProfileDto.Bio))
                 user.Bio = updateProfileDto.Bio;
-
-            if (!string.IsNullOrWhiteSpace(updateProfileDto.AvatarUrl))
-                user.AvatarUrl = updateProfileDto.AvatarUrl;
-
-            if (!string.IsNullOrWhiteSpace(updateProfileDto.CoverPhotoUrl))
-                user.CoverPhotoUrl = updateProfileDto.CoverPhotoUrl;
 
             var result = await _userManager.UpdateAsync(user);
             if (!result.Succeeded)
