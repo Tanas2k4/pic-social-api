@@ -5,7 +5,6 @@ using PicSocial.Server.Models;
 using PicSocial.Server.Services;
 using PicSocial.Server.DTOs;
 using PicSocial.Server.Models.Entities;
-using Microsoft.Identity.Client;
 using Microsoft.EntityFrameworkCore;
 namespace PicSocial.Server.Controllers
 {
@@ -50,7 +49,11 @@ namespace PicSocial.Server.Controllers
             {
                 var objectName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
                 var fileUrl = await _googleCloudStorageService
-                    .UploadFileAsync(file.OpenReadStream(), objectName, file.ContentType);
+                    .UploadFileAsync(
+                        file.OpenReadStream(),
+                        objectName,
+                        file.ContentType
+                    );
 
                 var photo = new Photo
                 {
