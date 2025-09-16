@@ -47,7 +47,7 @@ namespace PicSocial.Server.Controllers
             //Upload tung file len Google Cloud Storage va luu vao database
             foreach (var file in files)
             {
-                var objectName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
+                var objectName = $"Post/{user.Id}/{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
                 var fileUrl = await _googleCloudStorageService
                     .UploadFileAsync(
                         file.OpenReadStream(),

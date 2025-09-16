@@ -12,6 +12,7 @@ namespace PicSocial.Server.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class FollowController : ControllerBase
     {
         private readonly UserManager<ApplicationUser> _userManager;

@@ -50,8 +50,17 @@ namespace PicSocial.Server.Controllers
         public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
         {
             var user = await _userManager.FindByEmailAsync(loginDto.Email);
+
+            //check user hợp lệ và email tồn tại
             if (user != null && await _userManager.CheckPasswordAsync(user, loginDto.Password))
             {
+                //gán avatar mặc định 
+                // if (string.IsNullOrEmpty(user.AvatarUrl))
+                // {
+                //     user.AvatarUrl = "avatar-default-link";
+                //     await _userManager.UpdateAsync(user);
+                // }
+
                 var token = GenerateToken(user);
                 return Ok(new { token });
             }
