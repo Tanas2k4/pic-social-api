@@ -154,11 +154,11 @@ namespace PicSocial.Server.Models
             builder.Entity<Comment>()
                 .HasKey(c => c.CommentId);
             builder.Entity<Comment>()
-                .HasIndex(c => c.PhotoId);
+                .HasIndex(c => c.PostId);
             builder.Entity<Comment>()
-                .HasOne(c => c.Photo)
+                .HasOne(c => c.Post)
                 .WithMany(p => p.Comments)
-                .HasForeignKey(c => c.PhotoId)
+                .HasForeignKey(c => c.PostId)
                 .OnDelete(DeleteBehavior.Cascade);
             builder.Entity<Comment>()
                 .HasOne(c => c.User)
@@ -175,15 +175,13 @@ namespace PicSocial.Server.Models
             builder.Entity<Like>()
                 .HasKey(l => l.LikeId);
             builder.Entity<Like>()
-                .HasIndex(l => new { l.PhotoId, l.UserId })
+                .HasIndex(l => new { l.PostId, l.UserId })
                 .IsUnique();
             builder.Entity<Like>()
-                .HasIndex(l => l.PhotoId);
-            builder.Entity<Like>()
-                .HasOne(l => l.Photo)
+                .HasOne(l => l.Post)
                 .WithMany(p => p.Likes)
-                .HasForeignKey(l => l.PhotoId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .HasForeignKey(l => l.PostId)
+                .OnDelete(DeleteBehavior.NoAction);
             builder.Entity<Like>()
                 .HasOne(l => l.User)
                 .WithMany()
