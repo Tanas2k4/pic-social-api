@@ -3,10 +3,9 @@ using System;
 
 namespace PicSocial.Server.Models.Entities
 {
-    public class Like : IDateTracking
+    public class Reaction : IDateTracking
     {
-        public Guid LikeId { get; set; } = Guid.NewGuid();
-        // public Guid PhotoId { get; set; }
+        public Guid ReactionId { get; set; } = Guid.NewGuid();
         public Guid PostId { get; set; }
         public string UserId { get; set; } = null!;
         public DateTimeOffset CreatedDate { get; set; }

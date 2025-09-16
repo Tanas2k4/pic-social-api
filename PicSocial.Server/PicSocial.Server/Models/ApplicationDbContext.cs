@@ -23,7 +23,7 @@ namespace PicSocial.Server.Models
         public DbSet<Tag> Tags { get; set; }
         public DbSet<PhotoTag> PhotoTags { get; set; }
         public DbSet<Comment> Comments { get; set; }
-        public DbSet<Like> Likes { get; set; }
+        public DbSet<Reaction> Reactions { get; set; }
         public DbSet<Share> Shares { get; set; }
         public DbSet<Report> Reports { get; set; }
         public DbSet<Post> Posts { get; set; }
@@ -172,17 +172,17 @@ namespace PicSocial.Server.Models
                 .OnDelete(DeleteBehavior.Restrict);
 
             // Configure Likes
-            builder.Entity<Like>()
-                .HasKey(l => l.LikeId);
-            builder.Entity<Like>()
+            builder.Entity<Reaction>()
+                .HasKey(l => l.ReactionId);
+            builder.Entity<Reaction>()
                 .HasIndex(l => new { l.PostId, l.UserId })
                 .IsUnique();
-            builder.Entity<Like>()
+            builder.Entity<Reaction>()
                 .HasOne(l => l.Post)
                 .WithMany(p => p.Likes)
                 .HasForeignKey(l => l.PostId)
                 .OnDelete(DeleteBehavior.NoAction);
-            builder.Entity<Like>()
+            builder.Entity<Reaction>()
                 .HasOne(l => l.User)
                 .WithMany()
                 .HasForeignKey(l => l.UserId)

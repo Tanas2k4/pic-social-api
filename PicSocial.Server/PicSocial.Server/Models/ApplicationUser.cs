@@ -22,7 +22,7 @@ namespace PicSocial.Server.Models
         public ICollection<Follow> FollowedFollows { get; set; } = new List<Follow>();
         public ICollection<Album> Albums { get; set; } = new List<Album>();
         public ICollection<Comment> Comments { get; set; } = new List<Comment>();
-        public ICollection<Like> Likes { get; set; } = new List<Like>();
+        public ICollection<Reaction> Reactions { get; set; } = new List<Reaction>();
         public ICollection<Share> Shares { get; set; } = new List<Share>();
         public ICollection<Report> Reports { get; set; } = new List<Report>();
         public ICollection<Post> Posts { get; set; } = new List<Post>();
