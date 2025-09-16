@@ -1,6 +1,4 @@
 using PicSocial.Server.Models.Interfaces;
-using System;
-using System.Collections.Generic;
 
 namespace PicSocial.Server.Models.Entities
 {
@@ -9,8 +7,6 @@ namespace PicSocial.Server.Models.Entities
         public Guid PhotoId { get; set; } = Guid.NewGuid();
         public Guid PostId { get; set; }
         public string UserId { get; set; } = null!;
-        public string? Title { get; set; }
-        public string? Description { get; set; }
         public DateTimeOffset CreatedDate { get; set; } 
         public DateTimeOffset? UpdatedDate { get; set; }
         public string OriginalFileUrl { get; set; } = null!;
@@ -28,8 +24,6 @@ namespace PicSocial.Server.Models.Entities
         public ICollection<PhotoVersion> Versions { get; set; } = new List<PhotoVersion>();
         public ICollection<AlbumPhoto> AlbumPhotos { get; set; } = new List<AlbumPhoto>();
         public ICollection<PhotoTag> PhotoTags { get; set; } = new List<PhotoTag>();
-        public ICollection<Comment> Comments { get; set; } = new List<Comment>();
-        public ICollection<Like> Likes { get; set; } = new List<Like>();
         public ICollection<Share> Shares { get; set; } = new List<Share>();
         public ICollection<Report> Reports { get; set; } = new List<Report>();
     }

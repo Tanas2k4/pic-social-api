@@ -13,7 +13,7 @@ namespace PicSocial.Server.Controllers
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly GoogleCloudStorageService _googleCloudStorageService;
-
+    
         public CoverPhotoController(UserManager<ApplicationUser> userManager, GoogleCloudStorageService googleCloudStorageService)
         {
             _userManager = userManager;
