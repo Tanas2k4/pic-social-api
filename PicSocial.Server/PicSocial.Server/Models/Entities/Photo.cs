@@ -24,7 +24,5 @@ namespace PicSocial.Server.Models.Entities
         public ICollection<PhotoVersion> Versions { get; set; } = new List<PhotoVersion>();
         public ICollection<AlbumPhoto> AlbumPhotos { get; set; } = new List<AlbumPhoto>();
         public ICollection<PhotoTag> PhotoTags { get; set; } = new List<PhotoTag>();
-        public ICollection<Share> Shares { get; set; } = new List<Share>();
-        public ICollection<Report> Reports { get; set; } = new List<Report>();
     }
-}
+}   

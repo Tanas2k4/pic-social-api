@@ -13,7 +13,7 @@ namespace PicSocial.Server.Controllers
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly GoogleCloudStorageService _googleCloudStorageService;
-    
+
         public CoverPhotoController(UserManager<ApplicationUser> userManager, GoogleCloudStorageService googleCloudStorageService)
         {
             _userManager = userManager;
@@ -52,6 +52,26 @@ namespace PicSocial.Server.Controllers
             await _userManager.UpdateAsync(user);
 
             return Ok(new { message = "cover photo uploaded" });
+        }
+
+        //DELETE api/coverPhoto/delete
+        [HttpDelete("delete")]
+        public async Task<IActionResult> DeletePhotoCover()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+                return Unauthorized();
+
+            if (string.IsNullOrEmpty(user.CoverPhotoUrl))
+                return BadRequest();
+
+            var objectName = user.CoverPhotoUrl.Split("/").Last();
+            await _googleCloudStorageService.DeleteFileAsync($"coverPhotos/{objectName}");
+
+            user.AvatarUrl = objectName;
+            await _userManager.UpdateAsync(user);
+
+            return Ok(new { message = "delete success" });
         }
     }
 }

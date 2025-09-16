@@ -16,5 +16,7 @@ namespace PicSocial.Server.Models.Entities
         public ICollection<Photo> Photos { get; set; } = new List<Photo>();
         public ICollection<Reaction> Likes { get; set; } = new List<Reaction>();
         public ICollection<Comment> Comments { get; set; } = new List<Comment>();
+        public ICollection<Share> Shares { get; set; } = new List<Share>();
+        public ICollection<Report> Reports { get; set; } = new List<Report>();
     }
 }
