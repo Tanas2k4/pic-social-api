@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -8,6 +9,7 @@ namespace PicSocial.Server.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class AvatarController : ControllerBase
     {
         private readonly UserManager<ApplicationUser> _userManager;
@@ -46,6 +48,7 @@ namespace PicSocial.Server.Controllers
                 avatar.ContentType
             );
 
+            user.AvatarUrl = objectName;
             user.AvatarUrl = fileUrl;
             await _userManager.UpdateAsync(user);
 
@@ -65,10 +68,10 @@ namespace PicSocial.Server.Controllers
                 return BadRequest("No avatar here!!");
 
             //Kiểm tra file
-                var objectName = user.AvatarUrl.Split("/").Last();
+            var objectName = user.AvatarUrl.Split("/").Last();
             await _googleCloudStorageService.DeleteFileAsync($"avatars/{objectName}");
 
-            user.AvatarUrl = null;
+            user.AvatarUrl = null; //thay vì null thì có thể set avatar về mặc định 
             await _userManager.UpdateAsync(user);
             return Ok(new { message = "delete complete" });
         }
