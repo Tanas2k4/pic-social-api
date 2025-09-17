@@ -163,7 +163,8 @@ namespace PicSocial.Server.Controllers
                         photoId = photo.PhotoId,
                         originalFileUrl = photo.OriginalFileUrl,
                         isPublic = photo.IsPublic
-                    })
+                    }),
+                    reaction = p.ReactionCount
                 })
                 .ToListAsync();
 
@@ -187,7 +188,8 @@ namespace PicSocial.Server.Controllers
                         photoId = photo.PhotoId,
                         originalFileUrl = photo.OriginalFileUrl,
                         isPublic = photo.IsPublic
-                    })
+                    }),
+                    reaction = p.ReactionCount
                 })
                 .FirstOrDefaultAsync();
 
