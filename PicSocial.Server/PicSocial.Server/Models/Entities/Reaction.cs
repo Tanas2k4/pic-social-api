@@ -10,7 +10,6 @@ namespace PicSocial.Server.Models.Entities
         public string UserId { get; set; } = null!;
         public DateTimeOffset CreatedDate { get; set; }
         public DateTimeOffset? UpdatedDate { get; set; }
-        // public int CountLike { get; set; } = 0;
 
         // Navigation properties
         public Post Post { get; set; } = null!;
