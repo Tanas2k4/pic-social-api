@@ -159,17 +159,17 @@ namespace PicSocial.Server.Models
                 .HasOne(c => c.Post)
                 .WithMany(p => p.Comments)
                 .HasForeignKey(c => c.PostId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Cascade); // Xóa Post thì xóa hết Comment
             builder.Entity<Comment>()
                 .HasOne(c => c.User)
                 .WithMany()
                 .HasForeignKey(c => c.UserId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Restrict); // Không cho xóa User nếu còn Comment
             builder.Entity<Comment>()
                 .HasOne(c => c.ParentComment)
                 .WithMany(c => c.ChildComments)
                 .HasForeignKey(c => c.ParentCommentId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Restrict); // Không cascade để tránh multiple paths
 
             // Configure Reaction
             builder.Entity<Reaction>()

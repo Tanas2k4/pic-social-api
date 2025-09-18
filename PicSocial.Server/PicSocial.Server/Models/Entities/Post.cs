@@ -10,6 +10,7 @@ namespace PicSocial.Server.Models.Entities
         public DateTimeOffset CreatedDate { get; set; }
         public DateTimeOffset? UpdatedDate { get; set; }
         public int ReactionCount { get; set; } = 0;
+        public int CommentCount { get; set; } = 0;
 
         // Navigation properties
         public ApplicationUser User { get; set; } = null!;
