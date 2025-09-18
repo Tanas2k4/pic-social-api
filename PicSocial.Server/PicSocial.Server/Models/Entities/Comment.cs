@@ -10,7 +10,7 @@ namespace PicSocial.Server.Models.Entities
         public Guid CommentId { get; set; } = Guid.NewGuid();
         public Guid PostId { get; set; }
         public string UserId { get; set; } = null!;        
-        public string? Text { get; set; }
+        public string? Content { get; set; }
         public DateTimeOffset CreatedDate { get; set; }
         public DateTimeOffset? UpdatedDate { get; set; }
         public Guid? ParentCommentId { get; set; }

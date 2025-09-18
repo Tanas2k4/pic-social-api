@@ -164,7 +164,8 @@ namespace PicSocial.Server.Controllers
                         originalFileUrl = photo.OriginalFileUrl,
                         isPublic = photo.IsPublic
                     }),
-                    reaction = p.ReactionCount
+                    reaction = p.ReactionCount,
+                    comment = p.CommentCount
                 })
                 .ToListAsync();
 
@@ -189,7 +190,9 @@ namespace PicSocial.Server.Controllers
                         originalFileUrl = photo.OriginalFileUrl,
                         isPublic = photo.IsPublic
                     }),
-                    reaction = p.ReactionCount
+                    reaction = p.ReactionCount,
+                    comment = p.CommentCount
+                    
                 })
                 .FirstOrDefaultAsync();
 
