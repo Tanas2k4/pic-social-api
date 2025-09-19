@@ -4,8 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PicSocial.Server.Models;
 using PicSocial.Server.Models.Entities;
-using System.Web;
-using System.Linq;
+
 namespace PicSocial.Server.Controllers
 {
     [ApiController]
