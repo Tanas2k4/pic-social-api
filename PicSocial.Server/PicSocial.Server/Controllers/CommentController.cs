@@ -104,6 +104,44 @@ namespace PicSocial.Server.Controllers
             return Ok(new { message = "deleted comment" });
         }
 
+        //PUT api/comment/{commentId}?postId={postId}
+        public async Task<IActionResult> UpdateComment(Guid commentId, Guid postId, [FromForm] CommentDto commentDto)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+                return Unauthorized();
+
+            var comment = await _context.Comments
+                .Include(c => c.ChildComments)
+                .FirstOrDefaultAsync(c => c.CommentId == commentId);
+            if (comment == null || comment.ParentCommentId != null)
+                return NotFound();
+
+            var post = await _context.Posts
+                .FirstOrDefaultAsync(p => p.PostId == postId);
+            if (post == null)
+                return NotFound();
+
+            //cập nhật 
+            comment.Content = commentDto.Content;
+            comment.UpdatedDate = DateTimeOffset.Now;
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                massage = "comment updated",
+                newComment = new
+                {
+                    comment.CommentId,
+                    comment.Content,
+                    comment.UpdatedDate,
+                    userName = user.UserName,
+                    avatar = user.AvatarUrl
+                }
+            });        
+        }
+
         //GET api/comment/{postId}
         [HttpGet("{postId}")]
         public async Task<IActionResult> GetCommentPost(Guid postId)
