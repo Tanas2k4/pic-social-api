@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.VisualBasic;
 using PicSocial.Server.DTOs;
 using PicSocial.Server.Models;
 using PicSocial.Server.Models.Entities;
@@ -22,7 +23,7 @@ namespace PicSocial.Server.Controllers
             _context = context;
         }
 
-        //POST api/report/{postId}
+        //POST api/report/{postId} // 
         [HttpPost("{postId}")]
         public async Task<IActionResult> ReportPost(Guid postId, [FromForm] ReportDto reportDto)
         {
