@@ -95,7 +95,6 @@ namespace PicSocial.Server.Controllers
             var post = await _context.Posts
                 .Include(p => p.Photos)
                 .FirstOrDefaultAsync(p => p.PostId == postId && p.UserId == user.Id);
-
             if (post == null)
                 return NotFound("Post not found or you do not have permission to delete this post.");
 
@@ -143,15 +142,15 @@ namespace PicSocial.Server.Controllers
         }
 
         //GET api/post/{id}
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetPostsByUser(string id)
+        [HttpGet("{userId}")]
+        public async Task<IActionResult> GetPostsByUser(string userId)
         {
-            var user = await _userManager.FindByIdAsync(id);
+            var user = await _userManager.FindByIdAsync(userId);
             if (user == null)
                 return NotFound("User not found.");
 
             var posts = await _context.Posts
-                .Where(p => p.UserId == id)
+                .Where(p => p.UserId == userId)
                 .Select(p => new
                 {
                     postId = p.PostId,
