@@ -96,12 +96,12 @@ namespace PicSocial.Server.Controllers
                 .Include(p => p.Photos)
                 .FirstOrDefaultAsync(p => p.PostId == postId && p.UserId == user.Id);
             if (post == null)
-                return NotFound("Post not found or you do not have permission to delete this post.");
+                return NotFound("Post not found.");
 
             //Kiểm tra role Admin
             var isAdmin = await _userManager.IsInRoleAsync(user, "Admin");
             if (!isAdmin && post.UserId != user.Id)
-                return Forbid();
+                return Forbid("you don't have permission");
 
             //Xoa anh tren Google Cloud Storage
             foreach (var photo in post.Photos)
