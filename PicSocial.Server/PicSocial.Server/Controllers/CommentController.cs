@@ -81,8 +81,8 @@ namespace PicSocial.Server.Controllers
             if (comment == null)
                     return NotFound();
 
-            //check người comment
-            if (comment.UserId != user.Id)
+            //check quyền được xóa comment (chủ tus và user cmt)
+            if (comment.UserId != user.Id && post.UserId != user.Id )
                 return Forbid();
 
             int removedCount = 1; //xóa ít nhất 1 vì xóa chính nó
@@ -105,6 +105,7 @@ namespace PicSocial.Server.Controllers
         }
 
         //PUT api/comment/{commentId}?postId={postId}
+        [HttpPut("{commentId}")]
         public async Task<IActionResult> UpdateComment(Guid commentId, Guid postId, [FromForm] CommentDto commentDto)
         {
             var user = await _userManager.GetUserAsync(User);
@@ -113,14 +114,14 @@ namespace PicSocial.Server.Controllers
 
             var comment = await _context.Comments
                 .Include(c => c.ChildComments)
-                .FirstOrDefaultAsync(c => c.CommentId == commentId);
+                .FirstOrDefaultAsync(c => c.CommentId == commentId && c.UserId == user.Id); //Chính chủ mới được sửa comment
             if (comment == null || comment.ParentCommentId != null)
-                return NotFound();
+                return NotFound("comment not found or you don't have permission");
 
             var post = await _context.Posts
                 .FirstOrDefaultAsync(p => p.PostId == postId);
             if (post == null)
-                return NotFound();
+                return NotFound("Post not found");
 
             //cập nhật 
             comment.Content = commentDto.Content;
@@ -139,7 +140,7 @@ namespace PicSocial.Server.Controllers
                     userName = user.UserName,
                     avatar = user.AvatarUrl
                 }
-            });        
+            });
         }
 
         //GET api/comment/{postId}

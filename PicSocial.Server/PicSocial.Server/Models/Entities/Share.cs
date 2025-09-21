@@ -8,7 +8,8 @@ namespace PicSocial.Server.Models.Entities
         public Guid ShareId { get; set; } = Guid.NewGuid();
         public Guid PostId { get; set; }
         public string UserId { get; set; } = null!;
-        public string? SharePlatform { get; set; }
+        public string? Caption { get; set;}
+        public string? SharePlatform { get; set; } // "Internal", "Facebook", "Messenger", "CopyLink"
         public DateTimeOffset CreatedDate { get; set; }
         public DateTimeOffset? UpdatedDate { get; set; }
 
