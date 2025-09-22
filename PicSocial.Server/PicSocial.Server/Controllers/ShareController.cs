@@ -22,7 +22,7 @@ namespace PicSocial.Server.Controllers
             _context = context;
         }
 
-        //POST api/share/{postId}
+        //POST api/share/upload/{postId}
         [HttpPost("{postId}")]
         public async Task<IActionResult> SharePost(Guid postId, [FromForm] ShareDto shareDto)
         {
@@ -68,8 +68,35 @@ namespace PicSocial.Server.Controllers
                         })
                     },
                     share.CreatedDate
-                }            
+                }
             });
+        }
+
+        //DELETE api/share/delete/{shareId}?post={postId}
+        [HttpDelete("{shareId}")]
+        public async Task<IActionResult> DeleteSharePost(Guid postId, Guid shareId)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+                return Unauthorized();
+
+            var share = await _context.Shares
+                .FirstOrDefaultAsync(s => s.ShareId == shareId && s.PostId == postId);
+            if(share == null)
+                return NotFound();
+
+            //check admin và người share
+                var isAdmin = await _userManager.IsInRoleAsync(user,"Admin");
+            if (!isAdmin && share.UserId != user.Id)
+                return StatusCode(StatusCodes.Status403Forbidden, new
+                {
+                    error = "you don't have permission"
+                });
+
+            _context.Shares.Remove(share);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "post share deleted" });
         }
     }
 }
