@@ -1,3 +1,4 @@
+using System.Formats.Tar;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -19,8 +20,8 @@ namespace PicSocial.Server.Controllers
             _context = context;
         }
 
-        //GET api/admin/user
-        [HttpGet("user")]
+        //GET api/admin/users
+        [HttpGet("users")]
         public async Task<IActionResult> GetAllUser()
         {
             var users = await _context.Users
@@ -29,19 +30,39 @@ namespace PicSocial.Server.Controllers
 
             return Ok(users);
         }
-        
-        //GET api/admin/report/{postId} //xem report được gửi về 
-        public async Task<IActionResult> GetAll(Guid postId, Guid roleId)
+
+        //DELETE api/admin/users/delete/{userId}
+        [HttpDelete("users/delete/{userId}")]
+        public async Task<IActionResult> DeleteUser(string userId)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+                return Unauthorized();
+
+            //gọi một user khác
+            var targetUser = await _userManager.FindByIdAsync(userId);
+            if (targetUser == null)
+                return NotFound(new { error = "User not found"});
+                
+            var result = await _userManager.DeleteAsync(targetUser);
+            if (!result.Succeeded)
+                return BadRequest(new { error = result.Errors });
+            return Ok(new { message = "delete completed!" });
+        }
+
+
+        //GET api/admin/reports/{postId} //xem report được gửi về 
+        [HttpGet("reports/{postId}")]
+        public async Task<IActionResult> GetAll(Guid postId)
         {
 
             var reports = await _context.Reports
                 .Where(p => p.PostId == postId)
                 .ToListAsync();
 
-            return Ok(reports);          
+            return Ok(reports);
         }
-    }
 
-    
-    
+        //PATCH 
+    } 
 }
