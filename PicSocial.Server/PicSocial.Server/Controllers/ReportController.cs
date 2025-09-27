@@ -23,7 +23,7 @@ namespace PicSocial.Server.Controllers
             _context = context;
         }
 
-        //POST api/report/{postId} // 
+        //POST api/report/{postId} //send report to admin 
         [HttpPost("{postId}")]
         public async Task<IActionResult> ReportPost(Guid postId, [FromForm] ReportDto reportDto)
         {
