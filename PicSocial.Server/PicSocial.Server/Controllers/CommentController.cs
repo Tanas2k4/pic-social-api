@@ -26,8 +26,8 @@ namespace PicSocial.Server.Controllers
         [HttpPost("{postId}")]
         public async Task<IActionResult> CommentPost(Guid postId, [FromBody] CommentDto commentDto)
         {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null)
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
                 return Unauthorized();
 
             var post = _context.Posts.FirstOrDefault(p => p.PostId == postId);
@@ -37,7 +37,7 @@ namespace PicSocial.Server.Controllers
             var comment = new Comment
             {
                 PostId = postId,
-                UserId = user.Id,
+                UserId = currentUser.Id,
                 Content = commentDto.Content,
                 ParentCommentId = commentDto.ParentCommentId,
                 CreatedDate = DateTimeOffset.Now
@@ -55,8 +55,8 @@ namespace PicSocial.Server.Controllers
                     comment.CommentId,
                     comment.Content,
                     comment.CreatedDate,
-                    userName = user.UserName,
-                    avatar = user.AvatarUrl
+                    userName = currentUser.UserName,
+                    avatar = currentUser.AvatarUrl
                 }
             });
         }
@@ -65,8 +65,8 @@ namespace PicSocial.Server.Controllers
         [HttpDelete("{commentId}")]
         public async Task<IActionResult> DeleteComment(Guid commentId, Guid postId)
         {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null)
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
                 return Unauthorized();
 
             var post = await _context.Posts
@@ -82,7 +82,7 @@ namespace PicSocial.Server.Controllers
                     return NotFound();
 
             //check quyền được xóa comment (chủ tus và user cmt)
-            if (comment.UserId != user.Id && post.UserId != user.Id )
+            if (comment.UserId != currentUser.Id && post.UserId != currentUser.Id )
                 return Forbid();
 
             int removedCount = 1; //xóa ít nhất 1 vì xóa chính nó
@@ -108,13 +108,13 @@ namespace PicSocial.Server.Controllers
         [HttpPut("{commentId}")]
         public async Task<IActionResult> UpdateComment(Guid commentId, Guid postId, [FromForm] CommentDto commentDto)
         {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null)
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
                 return Unauthorized();
 
             var comment = await _context.Comments
                 .Include(c => c.ChildComments)
-                .FirstOrDefaultAsync(c => c.CommentId == commentId && c.UserId == user.Id); //Chính chủ mới được sửa comment
+                .FirstOrDefaultAsync(c => c.CommentId == commentId && c.UserId == currentUser.Id); //Chính chủ mới được sửa comment
             if (comment == null || comment.ParentCommentId != null)
                 return NotFound("comment not found or you don't have permission");
 
@@ -137,8 +137,8 @@ namespace PicSocial.Server.Controllers
                     comment.CommentId,
                     comment.Content,
                     comment.UpdatedDate,
-                    userName = user.UserName,
-                    avatar = user.AvatarUrl
+                    userName = currentUser.UserName,
+                    avatar = currentUser.AvatarUrl
                 }
             });
         }

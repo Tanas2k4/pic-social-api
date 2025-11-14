@@ -67,18 +67,18 @@ namespace PicSocial.Server.Controllers
         [HttpPut]
         public async Task<IActionResult> UpdateMyProfile([FromBody] UpdateProfileDto updateProfileDto)
         {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null)
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
                 return Unauthorized();
             //Cập nhật thông tin người dùng
             //Cập nhật theo từng trường nếu nó không null hoặc rỗng
             if (!string.IsNullOrWhiteSpace(updateProfileDto.FirstName))
-                user.FirstName = updateProfileDto.FirstName;
+                currentUser.FirstName = updateProfileDto.FirstName;
 
             if (!string.IsNullOrWhiteSpace(updateProfileDto.Bio))
-                user.Bio = updateProfileDto.Bio;
+                currentUser.Bio = updateProfileDto.Bio;
 
-            var result = await _userManager.UpdateAsync(user);
+            var result = await _userManager.UpdateAsync(currentUser);
             if (!result.Succeeded)
                 return BadRequest(result.Errors);
 

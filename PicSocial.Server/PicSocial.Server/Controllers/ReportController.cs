@@ -27,8 +27,8 @@ namespace PicSocial.Server.Controllers
         [HttpPost("{postId}")]
         public async Task<IActionResult> ReportPost(Guid postId, [FromForm] ReportDto reportDto)
         {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null)
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
                 return Unauthorized();
 
             var post = await _context.Posts
@@ -39,7 +39,7 @@ namespace PicSocial.Server.Controllers
             var report = new Report
             {
                 PostId = post.PostId,
-                UserId = user.Id,
+                UserId = currentUser.Id,
                 Reason = reportDto.Reason,
                 CreatedDate = DateTimeOffset.Now,
                 Status = "Pending"

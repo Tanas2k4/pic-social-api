@@ -77,8 +77,8 @@ namespace PicSocial.Server.Controllers
         [HttpDelete("{shareId}")]
         public async Task<IActionResult> DeleteSharePost([FromQuery]Guid postId, Guid shareId)
         {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null)
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
                 return Unauthorized();
 
             //check post tồn tại
@@ -93,8 +93,8 @@ namespace PicSocial.Server.Controllers
                 return NotFound();
 
             //check admin và người share
-                var isAdmin = await _userManager.IsInRoleAsync(user,"Admin");
-            if (!isAdmin && share.UserId != user.Id)
+                var isAdmin = await _userManager.IsInRoleAsync(currentUser, "Admin");
+            if (!isAdmin && share.UserId != currentUser.Id)
                 return StatusCode(StatusCodes.Status403Forbidden, new
                 {
                     error = "you don't have permission"

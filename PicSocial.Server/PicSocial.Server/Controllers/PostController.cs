@@ -32,14 +32,14 @@ namespace PicSocial.Server.Controllers
             if (files == null || files.Count == 0)
                 return BadRequest("No files uploaded.");
 
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null)
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
                 return Unauthorized();
 
             //Tao Post mới
             var post = new Post
             {
-                UserId = user.Id,
+                UserId = currentUser.Id,
                 Title = title,
                 CreatedDate = DateTimeOffset.Now
             };
@@ -47,7 +47,7 @@ namespace PicSocial.Server.Controllers
             //Upload tung file len Google Cloud Storage va luu vao database
             foreach (var file in files)
             {
-                var objectName = $"Post/{user.Id}/{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
+                var objectName = $"Post/{currentUser.Id}/{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
                 var fileUrl = await _googleCloudStorageService
                     .UploadFileAsync(
                         file.OpenReadStream(),
@@ -57,7 +57,7 @@ namespace PicSocial.Server.Controllers
 
                 var photo = new Photo
                 {
-                    UserId = user.Id,
+                    UserId = currentUser.Id,
                     OriginalFileUrl = fileUrl,
                     CreatedDate = DateTimeOffset.Now,
                     IsPublic = true
@@ -88,19 +88,19 @@ namespace PicSocial.Server.Controllers
         [HttpDelete("{postId}")]
         public async Task<IActionResult> DeletePost(Guid postId)
         {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null)
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
                 return Unauthorized();
 
             var post = await _context.Posts
                 .Include(p => p.Photos)
-                .FirstOrDefaultAsync(p => p.PostId == postId && p.UserId == user.Id);
+                .FirstOrDefaultAsync(p => p.PostId == postId && p.UserId == currentUser.Id);
             if (post == null)
                 return NotFound("Post not found.");
 
             //Kiểm tra role Admin
-            var isAdmin = await _userManager.IsInRoleAsync(user, "Admin");
-            if (!isAdmin && post.UserId != user.Id)
+            var isAdmin = await _userManager.IsInRoleAsync(currentUser, "Admin");
+            if (!isAdmin && post.UserId != currentUser.Id)
                 return Forbid("you don't have permission");
 
             //Xoa anh tren Google Cloud Storage
@@ -121,12 +121,12 @@ namespace PicSocial.Server.Controllers
         [HttpPut("{postId}")]
         public async Task<IActionResult> UpdatePost(Guid postId, [FromBody] UpdatePostDto updatePostDto)
         {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null)
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
                 return Unauthorized();
 
             var post = await _context.Posts
-                .FirstOrDefaultAsync(p => p.PostId == postId && p.UserId == user.Id);
+                .FirstOrDefaultAsync(p => p.PostId == postId && p.UserId == currentUser.Id);
 
             if (post == null)
                 return NotFound("Post not found or you do not have permission to update this post.");
