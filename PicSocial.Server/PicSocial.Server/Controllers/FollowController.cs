@@ -23,8 +23,8 @@ namespace PicSocial.Server.Controllers
             _context = context;
         }
 
-        // POST api/follow/AddFollow //id là id của người mà bạn muốn follow
-        [HttpPost("addFollow")]
+        // POST api/follow //id là id của người mà bạn muốn follow
+        [HttpPost]
         public async Task<IActionResult> FollowUser([FromBody] FollowDto followDto)
         {
             var currentUser = await _userManager.GetUserAsync(User);
@@ -54,8 +54,8 @@ namespace PicSocial.Server.Controllers
         }
 
         // DELETE api/follow/{id} //id là id của người mà bạn muốn unfollow
-        [HttpDelete("unFollow/{id}")]
-        public async Task<IActionResult> UnfollowUser(string id)
+        [HttpDelete("{userId}")]
+        public async Task<IActionResult> UnfollowUser(string userId)
         {
             var currentUser = await _userManager.GetUserAsync(User);
             if (currentUser == null)
@@ -63,7 +63,7 @@ namespace PicSocial.Server.Controllers
 
             //Kiểm tra xem người dùng có đang theo dõi người này không
             var follow = await _context.Follows
-                .FirstOrDefaultAsync(f => f.FollowerId == currentUser.Id && f.FollowedId == id);
+                .FirstOrDefaultAsync(f => f.FollowerId == currentUser.Id && f.FollowedId == userId);
             if (follow == null)
                 return NotFound("You are not following this user.");
 

@@ -24,8 +24,8 @@ namespace PicSocial.Server.Controllers
             _userManager = userManager;
         }
 
-        //POST api/post/upload
-        [HttpPost("upload")]
+        //POST api/post
+        [HttpPost]
         public async Task<IActionResult> UploadPhoto([FromForm] string title, [FromForm] List<IFormFile> files)
         {
             //Kiểm tra files được tải lên
@@ -85,7 +85,7 @@ namespace PicSocial.Server.Controllers
         }
 
         //DELETE api/post/delete/{postId}
-        [HttpDelete("delete/{postId}")]
+        [HttpDelete("{postId}")]
         public async Task<IActionResult> DeletePost(Guid postId)
         {
             var user = await _userManager.GetUserAsync(User);
@@ -118,7 +118,7 @@ namespace PicSocial.Server.Controllers
         }
 
         //PUT api/post/update/{postId}
-        [HttpPut("update/{postId}")]
+        [HttpPut("{postId}")]
         public async Task<IActionResult> UpdatePost(Guid postId, [FromBody] UpdatePostDto updatePostDto)
         {
             var user = await _userManager.GetUserAsync(User);
@@ -146,7 +146,7 @@ namespace PicSocial.Server.Controllers
             });
         }
 
-        //GET api/post/{id}
+        //GET api/post/{userId} - Xem tat ca bai dang cua user
         [HttpGet("{userId}")]
         public async Task<IActionResult> GetPostsByUser(string userId)
         {
@@ -169,7 +169,9 @@ namespace PicSocial.Server.Controllers
                         isPublic = photo.IsPublic
                     }),
                     reaction = p.ReactionCount,
-                    comment = p.CommentCount
+                    comment = p.CommentCount,
+                    share = p.ShareCount
+                    
                 })
                 .ToListAsync();
 
@@ -195,8 +197,8 @@ namespace PicSocial.Server.Controllers
                         isPublic = photo.IsPublic
                     }),
                     reaction = p.ReactionCount,
-                    comment = p.CommentCount
-                    
+                    comment = p.CommentCount,
+                    share = p.ShareCount
                 })
                 .FirstOrDefaultAsync();
 

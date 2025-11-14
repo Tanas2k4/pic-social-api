@@ -20,12 +20,12 @@ namespace PicSocial.Server.Controllers
             _googleCloudStorageService = googleCloudStorageService;
         }
 
-        //POST api/coverPhoto/upload
-        [HttpPost("upload")]
+        //POST api/coverPhoto
+        [HttpPost]
         public async Task<IActionResult> UploadPhotoCover([FromForm] IFormFile photoCover)
         {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null)
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
                 return Unauthorized();
 
             //Kiểm tra file
@@ -35,9 +35,9 @@ namespace PicSocial.Server.Controllers
             }
 
             //ghì đè nếu có ảnh bìa cũ 
-            if (!string.IsNullOrEmpty(user.CoverPhotoUrl))
+            if (!string.IsNullOrEmpty(currentUser.CoverPhotoUrl))
             {
-                var oldCoverPhoto = Path.GetFileName(user.CoverPhotoUrl);
+                var oldCoverPhoto = Path.GetFileName(currentUser.CoverPhotoUrl);
                 await _googleCloudStorageService.DeleteFileAsync($"coverPhotos/{oldCoverPhoto}");
             }
 
@@ -48,28 +48,28 @@ namespace PicSocial.Server.Controllers
                 photoCover.ContentType
             );
 
-            user.CoverPhotoUrl = fileUrl;
-            await _userManager.UpdateAsync(user);
+            currentUser.CoverPhotoUrl = fileUrl;
+            await _userManager.UpdateAsync(currentUser);
 
             return Ok(new { message = "cover photo uploaded" });
         }
 
-        //DELETE api/coverPhoto/delete
-        [HttpDelete("delete")]
+        //DELETE api/coverPhoto
+        [HttpDelete]
         public async Task<IActionResult> DeletePhotoCover()
         {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null)
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
                 return Unauthorized();
 
-            if (string.IsNullOrEmpty(user.CoverPhotoUrl))
+            if (string.IsNullOrEmpty(currentUser.CoverPhotoUrl))
                 return BadRequest();
 
-            var objectName = user.CoverPhotoUrl.Split("/").Last();
+            var objectName = currentUser.CoverPhotoUrl.Split("/").Last();
             await _googleCloudStorageService.DeleteFileAsync($"coverPhotos/{objectName}");
 
-            user.AvatarUrl = objectName;
-            await _userManager.UpdateAsync(user);
+            currentUser.AvatarUrl = objectName;
+            await _userManager.UpdateAsync(currentUser);
 
             return Ok(new { message = "delete success" });
         }

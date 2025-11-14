@@ -20,14 +20,39 @@ namespace PicSocial.Server.Controllers
             _userManager = userManager;
         }
 
-        //GET api/profile/{id}
-        [HttpGet("{id}")]
-        public async Task<ActionResult<UserProfileDto>> GetProfileById()
+        //GET api/profile/{userId}
+        [HttpGet("{userId}")]
+        public async Task<ActionResult<UserProfileDto>> GetProfileById(string userId)
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
                 return Unauthorized();
 
+            //Kiểm tra có phải là người lạ hay người đã follow - sử dụng if/else để trả về thông tin phù hợp
+
+
+            //Lấy thông tin người dùng từ cơ sở dữ liệu dựa trên userId
+            var targetUser = await _userManager.FindByIdAsync(userId.ToString());
+            if (targetUser == null)
+                return NotFound();
+
+            return new UserProfileDto
+            {
+                UserName = targetUser.UserName!,
+                FirstName = targetUser.FirstName,
+                Bio = targetUser.Bio,
+                AvatarUrl = targetUser.AvatarUrl, //default avatar
+                CoverPhotoUrl = targetUser.CoverPhotoUrl
+            };
+        }
+
+        // GET api/profile/me
+        [HttpGet("me")]
+        public async Task<ActionResult<UserProfileDto>> GetMyProfile()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+                return Unauthorized();
             return new UserProfileDto
             {
                 UserName = user.UserName!,
@@ -38,8 +63,8 @@ namespace PicSocial.Server.Controllers
             };
         }
 
-        // PUT api/profile/update
-        [HttpPut("update")]
+        // PUT api/profile
+        [HttpPut]
         public async Task<IActionResult> UpdateMyProfile([FromBody] UpdateProfileDto updateProfileDto)
         {
             var user = await _userManager.GetUserAsync(User);

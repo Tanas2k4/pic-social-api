@@ -21,13 +21,13 @@ namespace PicSocial.Server.Controllers
             _googleCloudStorageService = googleCloudStorageService;
         }
 
-        // POST api/avatar/upload
-        [HttpPost("upload")]
+        // POST api/avatar
+        [HttpPost]
         public async Task<IActionResult> UploadAvatar([FromForm] IFormFile avatar)
         {
             //Kiểm tra chính chủ
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null)
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
                 return Unauthorized();
 
             //Kiểm tra file được tải lên
@@ -35,9 +35,9 @@ namespace PicSocial.Server.Controllers
                 return BadRequest("No file uploaded");
 
             //Xóa và ghì đè avatar mới 
-            if (!string.IsNullOrEmpty(user.AvatarUrl))
+            if (!string.IsNullOrEmpty(currentUser.AvatarUrl))
             {
-                var oldAvatar = Path.GetFileName(user.AvatarUrl);
+                var oldAvatar = Path.GetFileName(currentUser.AvatarUrl);
                 await _googleCloudStorageService.DeleteFileAsync($"avatars/{oldAvatar}");
             }
 
@@ -48,31 +48,31 @@ namespace PicSocial.Server.Controllers
                 avatar.ContentType
             );
 
-            user.AvatarUrl = objectName;
-            user.AvatarUrl = fileUrl;
-            await _userManager.UpdateAsync(user);
+            currentUser.AvatarUrl = objectName;
+            currentUser.AvatarUrl = fileUrl;
+            await _userManager.UpdateAsync(currentUser);
 
             return Ok(new { message = "upload completed" });
         }
 
-        // DELETE api/avatar/delete
-        [HttpDelete("delete")]
+        // DELETE api/avatar
+        [HttpDelete]
         public async Task<IActionResult> DeleteAvatar()
         {
             //Kiểm tra chính chủ
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null)
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
                 return Unauthorized();
 
-            if (string.IsNullOrEmpty(user.AvatarUrl))
+            if (string.IsNullOrEmpty(currentUser.AvatarUrl))
                 return BadRequest("No avatar here!!");
 
             //Kiểm tra file
-            var objectName = user.AvatarUrl.Split("/").Last();
+            var objectName = currentUser.AvatarUrl.Split("/").Last();
             await _googleCloudStorageService.DeleteFileAsync($"avatars/{objectName}");
 
-            user.AvatarUrl = null; //thay vì null thì có thể set avatar về mặc định 
-            await _userManager.UpdateAsync(user);
+            currentUser.AvatarUrl = null; //thay vì null thì có thể set avatar về mặc định 
+            await _userManager.UpdateAsync(currentUser);
             return Ok(new { message = "delete complete" });
         }
     }
