@@ -25,8 +25,8 @@ namespace PicSocial.Server.Controllers
         [HttpPost("{postId}")]
         public async Task<IActionResult> ReactionPost(Guid postId)
         {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null)
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
                 return Unauthorized();
 
             var post = await _context.Posts
@@ -35,7 +35,7 @@ namespace PicSocial.Server.Controllers
                 return NotFound();
 
             var reaction = await _context.Reactions
-                .FirstOrDefaultAsync(r => r.PostId == postId && r.UserId == user.Id);
+                .FirstOrDefaultAsync(r => r.PostId == postId && r.UserId == currentUser.Id);
 
             if (reaction != null)
             {
@@ -49,7 +49,7 @@ namespace PicSocial.Server.Controllers
                 var newReaction = new Reaction
                 {
                     PostId = postId,
-                    UserId = user.Id,
+                    UserId = currentUser.Id,
                     CreatedDate = DateTimeOffset.Now
                 };
                 _context.Reactions.Add(newReaction);
