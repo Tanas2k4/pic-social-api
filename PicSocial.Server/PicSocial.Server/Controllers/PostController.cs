@@ -25,7 +25,7 @@ namespace PicSocial.Server.Controllers
         }
 
         //POST api/post/upload
-        [HttpPost("upload")]
+        [HttpPost]
         public async Task<IActionResult> UploadPhoto([FromForm] string title, [FromForm] List<IFormFile> files)
         {
             //Kiểm tra files được tải lên
@@ -146,7 +146,7 @@ namespace PicSocial.Server.Controllers
             });
         }
 
-        //GET api/post/{id}
+        //GET api/post/{userId} - Xem tat ca bai dang cua user
         [HttpGet("{userId}")]
         public async Task<IActionResult> GetPostsByUser(string userId)
         {
@@ -169,7 +169,9 @@ namespace PicSocial.Server.Controllers
                         isPublic = photo.IsPublic
                     }),
                     reaction = p.ReactionCount,
-                    comment = p.CommentCount
+                    comment = p.CommentCount,
+                    share = p.ShareCount
+                    
                 })
                 .ToListAsync();
 
@@ -195,8 +197,8 @@ namespace PicSocial.Server.Controllers
                         isPublic = photo.IsPublic
                     }),
                     reaction = p.ReactionCount,
-                    comment = p.CommentCount
-                    
+                    comment = p.CommentCount,
+                    share = p.ShareCount
                 })
                 .FirstOrDefaultAsync();
 

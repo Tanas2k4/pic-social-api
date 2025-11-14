@@ -67,7 +67,7 @@ namespace PicSocial.Server.Controllers
         }
 
 
-        //GET api/admin/totalPost -> tổng số bài viết
+        //GET api/admin/totalPost - tổng số bài viết
         [HttpGet("posts")]
         public async Task<IActionResult> TotalPost()
         {

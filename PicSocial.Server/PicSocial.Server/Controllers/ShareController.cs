@@ -22,7 +22,7 @@ namespace PicSocial.Server.Controllers
             _context = context;
         }
 
-        //POST api/share/upload/{postId}
+        //POST api/share/{postId}
         [HttpPost("{postId}")]
         public async Task<IActionResult> SharePost(Guid postId, [FromForm] ShareDto shareDto)
         {
@@ -47,6 +47,7 @@ namespace PicSocial.Server.Controllers
             };
 
             _context.Shares.Add(share);
+            post.ShareCount++;
             await _context.SaveChangesAsync();
 
             return Ok(new
@@ -72,13 +73,19 @@ namespace PicSocial.Server.Controllers
             });
         }
 
-        //DELETE api/share/delete/{shareId}?post={postId}
+        //DELETE api/share/{shareId}?post={postId}
         [HttpDelete("{shareId}")]
-        public async Task<IActionResult> DeleteSharePost(Guid postId, Guid shareId)
+        public async Task<IActionResult> DeleteSharePost([FromQuery]Guid postId, Guid shareId)
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
                 return Unauthorized();
+
+            //check post tồn tại
+            var post = await _context.Posts
+                .FirstOrDefaultAsync(p => p.PostId == postId);
+            if (post == null)
+                return NotFound();
 
             var share = await _context.Shares
                 .FirstOrDefaultAsync(s => s.ShareId == shareId && s.PostId == postId);
@@ -94,8 +101,9 @@ namespace PicSocial.Server.Controllers
                 });
 
             _context.Shares.Remove(share);
-            await _context.SaveChangesAsync();
+            post.ShareCount--;
 
+            await _context.SaveChangesAsync();
             return Ok(new { message = "post share deleted" });
         }
     }

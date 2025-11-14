@@ -20,8 +20,8 @@ namespace PicSocial.Server.Controllers
             _googleCloudStorageService = googleCloudStorageService;
         }
 
-        //POST api/coverPhoto/upload
-        [HttpPost("upload")]
+        //POST api/coverPhoto
+        [HttpPost]
         public async Task<IActionResult> UploadPhotoCover([FromForm] IFormFile photoCover)
         {
             var user = await _userManager.GetUserAsync(User);
