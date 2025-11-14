@@ -32,13 +32,9 @@ namespace PicSocial.Server.Controllers
         }
 
         //DELETE api/admin/users/delete/{userId}
-        [HttpDelete("users/delete/{userId}")]
+        [HttpDelete("users/{userId}")]
         public async Task<IActionResult> DeleteUser(string userId)
         {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null)
-                return Unauthorized();
-
             //gọi một user khác
             var targetUser = await _userManager.FindByIdAsync(userId);
             if (targetUser == null)
@@ -50,12 +46,19 @@ namespace PicSocial.Server.Controllers
             return Ok(new { message = "delete completed!" });
         }
 
-
-        //GET api/admin/reports/{postId} //xem report được gửi về 
-        [HttpGet("reports/{postId}")]
-        public async Task<IActionResult> GetAll(Guid postId)
+        //GET api/admin/reports //xem tất cả report
+        [HttpGet("reports")]
+        public async Task<IActionResult> GetAllReports()
         {
+            var reports = await _context.Reports
+                .ToListAsync();
+            return Ok(reports);
+        }
 
+        //GET api/admin/reports/{postId} //xem tất cả report của 1 bài viết 
+        [HttpGet("reports/{postId}")]
+        public async Task<IActionResult> GetReportById (Guid postId)
+        {
             var reports = await _context.Reports
                 .Where(p => p.PostId == postId)
                 .ToListAsync();
@@ -63,6 +66,14 @@ namespace PicSocial.Server.Controllers
             return Ok(reports);
         }
 
-        //PATCH 
+
+        //GET api/admin/totalPost -> tổng số bài viết
+        [HttpGet("posts")]
+        public async Task<IActionResult> TotalPost()
+        {
+            var allPost = await _context.Posts.ToListAsync();
+            return Ok(allPost);
+        }
+
     } 
 }
