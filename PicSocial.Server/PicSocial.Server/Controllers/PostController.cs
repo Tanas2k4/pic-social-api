@@ -24,7 +24,7 @@ namespace PicSocial.Server.Controllers
             _userManager = userManager;
         }
 
-        //POST api/post/upload
+        //POST api/post
         [HttpPost]
         public async Task<IActionResult> UploadPhoto([FromForm] string title, [FromForm] List<IFormFile> files)
         {
@@ -85,7 +85,7 @@ namespace PicSocial.Server.Controllers
         }
 
         //DELETE api/post/delete/{postId}
-        [HttpDelete("delete/{postId}")]
+        [HttpDelete("{postId}")]
         public async Task<IActionResult> DeletePost(Guid postId)
         {
             var user = await _userManager.GetUserAsync(User);
@@ -118,7 +118,7 @@ namespace PicSocial.Server.Controllers
         }
 
         //PUT api/post/update/{postId}
-        [HttpPut("update/{postId}")]
+        [HttpPut("{postId}")]
         public async Task<IActionResult> UpdatePost(Guid postId, [FromBody] UpdatePostDto updatePostDto)
         {
             var user = await _userManager.GetUserAsync(User);
