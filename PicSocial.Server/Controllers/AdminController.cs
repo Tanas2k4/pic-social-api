@@ -27,8 +27,8 @@ namespace PicSocial.Server.Controllers
         [HttpGet("users")]
         public async Task<IActionResult> GetAllUser()
         {
-            var users = await _adminService.GetAllUserAsync();
-            return Ok(users);
+            var result = await _adminService.GetAllUserAsync();
+            return Ok(result);
         }
 
         //DELETE api/admin/user/{userId}
@@ -43,24 +43,24 @@ namespace PicSocial.Server.Controllers
         [HttpGet("reports")]
         public async Task<IActionResult> GetAllReports()
         {
-            var reports = await _adminService.GetAllReportsAsync();
-            return Ok(reports);
+            var result = await _adminService.GetAllReportsAsync();
+            return Ok(result);
         }
 
         //GET api/admin/reports/{postId} //xem tất cả report của 1 bài viết 
         [HttpGet("reports/{postId}")]
         public async Task<IActionResult> GetReportById (Guid postId)
         {
-            var reports = await _adminService.GetReportByIdAsync(postId);
-            return Ok(reports);
+            var result = await _adminService.GetReportByIdAsync(postId);
+            return Ok(result);
         }
 
         //GET api/admin/totalPost - tổng số bài viết
         [HttpGet("posts")]
         public async Task<IActionResult> TotalPost()
         {
-            var allPost = await _adminService.TotalPostAsync();
-            return Ok(allPost);
+            var result = await _adminService.TotalPostAsync();
+            return Ok(result);
         }
     } 
 }

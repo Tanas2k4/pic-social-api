@@ -31,11 +31,11 @@ namespace PicSocial.Server.Controllers
             if (currentUser == null)
                 return Unauthorized();
             
-            var profileUser = await _profileService.GetProfileByIdAsync(currentUser.Id, userId);
-            if(profileUser == null)
+            var result = await _profileService.GetProfileByIdAsync(currentUser.Id, userId);
+            if(result == null)
                 return NotFound(new {message = "User not found"});
 
-            return Ok(profileUser);
+            return Ok(result);
         }
 
         // GET api/profile/me
@@ -46,9 +46,9 @@ namespace PicSocial.Server.Controllers
             if (currentUser == null)
                 return Unauthorized();
             
-            var myProfile = await _profileService.GetMyProfileAsync(currentUser.Id);
+            var result = await _profileService.GetMyProfileAsync(currentUser.Id);
 
-            return Ok(myProfile);
+            return Ok(result);
         }
         
         // PUT api/profile
@@ -60,10 +60,9 @@ namespace PicSocial.Server.Controllers
                 return Unauthorized();
             //Cập nhật thông tin người dùng
             //Cập nhật theo từng trường nếu nó không null hoặc rỗng
-            
-
-            var updateMyProfile = await _profileService.UpdateMyProfileAsync(currentUser.Id, updateProfileDto);
-            if (!updateMyProfile)
+           
+            var result = await _profileService.UpdateMyProfileAsync(currentUser.Id, updateProfileDto);
+            if (!result)
                 return BadRequest(new {message = "Failed to update profile"}); 
 
             return Ok(new {message ="Profile updated successfully" });
