@@ -11,6 +11,8 @@ obj/
 *.bak
 *.ldf
 *.mdf
+
+# Entity Framework migrations (optional)
 PicSocial.Server/PicSocial.Server/Migrations/
 
 # Visual Studio
@@ -58,8 +60,14 @@ Thumbs.db
 .env.test.local
 .env.production.local
 
-#key files
+# ---------------------------
+# Key files
+# ---------------------------
 PicSocial.Server/PicSocial.Server/gcs-key.json
 
-#appsetting.json
-PicSocial.Server/PicSocial.Server/appsettings.json
+# ---------------------------
+# App settings (only ignore secrets)
+# ---------------------------
+PicSocial.Server/PicSocial.Server/appsettings.Development.json
+PicSocial.Server/PicSocial.Server/appsettings.Local.json
+PicSocial.Server/PicSocial.Server/appsettings.*.json
