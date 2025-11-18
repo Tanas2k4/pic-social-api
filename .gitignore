@@ -1,73 +1,54 @@
-# ---------------------------
-# .NET / ASP.NET Core
-# ---------------------------
+########## DOTNET / ASP.NET CORE ##########
+
+# Build outputs
 bin/
 obj/
-*.user
+*.exe
+*.dll
+*.pdb
+
+# Rider / JetBrains / VS Code
+.idea/
+.vscode/
 *.suo
+*.user
 *.userosscache
 *.sln.docstates
+.vs
+# ASP.NET Core secrets
+appsettings.Development.json
+appsettings.Local.json
+appsettings.*.json
+
+# Keys / secrets
+gcs-key.json
+*.key
+*.pem
+*.cert
+*.pfx
+
+# EF Core Migrations (nếu bạn không muốn commit)
+# => Nếu muốn commit migration thì xoá dòng này
+**/Migrations/
+
+# .NET user files
+*.csproj.user
 *.dbmdl
-*.bak
-*.ldf
 *.mdf
+*.ldf
 
-# Entity Framework migrations (optional)
-PicSocial.Server/PicSocial.Server/Migrations/
+# Logs
+logs/
+*.log
 
-# Visual Studio
-.vs/
+# Publish outputs
+publish/
+wwwroot/staticwebassets/
 
-# Rider / JetBrains
-.idea/
-*.iml
-
-# ---------------------------
-# Node / ReactJS
-# ---------------------------
+########## OTHER ##########
+# Node stuff (nếu có frontend)
 node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnp/
-.pnp.js
-coverage/
-build/
-dist/
-.cache/
-.next/
 
-# ---------------------------
 # OS generated files
-# ---------------------------
 .DS_Store
 Thumbs.db
-
-# ---------------------------
-# Logs / temp
-# ---------------------------
-*.log
-*.tlog
-*.vspscc
-*.vssscc
-
-# ---------------------------
-# Env files (API keys, secrets)
-# ---------------------------
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-# ---------------------------
-# Key files
-# ---------------------------
-PicSocial.Server/PicSocial.Server/gcs-key.json
-
-# ---------------------------
-# App settings (only ignore secrets)
-# ---------------------------
-PicSocial.Server/PicSocial.Server/appsettings.Development.json
-PicSocial.Server/PicSocial.Server/appsettings.Local.json
-PicSocial.Server/PicSocial.Server/appsettings.*.json
