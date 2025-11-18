@@ -8,6 +8,7 @@ namespace PicSocial.Server.DTOs
         public string? AvatarUrl { get; set; }
         public string? CoverPhotoUrl { get; set; }
         public string? Location { get; set; } //use later  
-       
+        public int FollowersCount { get; set; } 
+        public int FollowingCount { get; set; }
     }
 }

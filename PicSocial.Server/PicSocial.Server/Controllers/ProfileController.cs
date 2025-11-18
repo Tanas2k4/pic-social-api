@@ -6,7 +6,8 @@ using Microsoft.AspNetCore.Mvc;
 using PicSocial.Server.DTOs;
 using PicSocial.Server.Models;
 using PicSocial.Server.Services;
-
+using PicSocial.Server.Controllers;
+using PicSocial.Server.Services.Interfaces;
 namespace PicSocial.Server.Controllers
 {
     [ApiController]
@@ -15,54 +16,47 @@ namespace PicSocial.Server.Controllers
     public class ProfileController : ControllerBase
     {
         private readonly UserManager<ApplicationUser> _userManager;
-        public ProfileController(UserManager<ApplicationUser> userManager)
+        private readonly IProfileService _profileService; 
+        public ProfileController(UserManager<ApplicationUser> userManager, IProfileService profileService)
         {
             _userManager = userManager;
+            _profileService = profileService;
         }
 
         //GET api/profile/{userId}
         [HttpGet("{userId}")]
-        public async Task<ActionResult<UserProfileDto>> GetProfileById(string userId)
+        public async Task<IActionResult> GetProfileById(string userId)
         {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null)
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
                 return Unauthorized();
+            
+            var profileUser = await _profileService.GetProfileAsync(currentUser.Id, userId);
+            if(profileUser == null)
+                return NotFound(new {message = "User not found"});
 
-            //Kiểm tra có phải là người lạ hay người đã follow - sử dụng if/else để trả về thông tin phù hợp
-
-
-            //Lấy thông tin người dùng từ cơ sở dữ liệu dựa trên userId
-            var targetUser = await _userManager.FindByIdAsync(userId.ToString());
-            if (targetUser == null)
-                return NotFound();
-
-            return new UserProfileDto
-            {
-                UserName = targetUser.UserName!,
-                FirstName = targetUser.FirstName,
-                Bio = targetUser.Bio,
-                AvatarUrl = targetUser.AvatarUrl, //default avatar
-                CoverPhotoUrl = targetUser.CoverPhotoUrl
-            };
+            return Ok(profileUser);
         }
 
-        // GET api/profile/me
+      
+
         [HttpGet("me")]
-        public async Task<ActionResult<UserProfileDto>> GetMyProfile()
+        public async Task<IActionResult> GetMyProfile()
         {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null)
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
                 return Unauthorized();
-            return new UserProfileDto
+            var userDto = new UserProfileDto
             {
-                UserName = user.UserName!,
-                FirstName = user.FirstName,
-                Bio = user.Bio,
-                AvatarUrl = user.AvatarUrl, //default avatar
-                CoverPhotoUrl = user.CoverPhotoUrl
+                UserName = currentUser.UserName!,
+                FirstName = currentUser.FirstName,
+                Bio = currentUser.Bio,
+                AvatarUrl = currentUser.AvatarUrl,
+                CoverPhotoUrl = currentUser.CoverPhotoUrl
             };
+           return Ok(userDto);
         }
-
+        
         // PUT api/profile
         [HttpPut]
         public async Task<IActionResult> UpdateMyProfile([FromBody] UpdateProfileDto updateProfileDto)
