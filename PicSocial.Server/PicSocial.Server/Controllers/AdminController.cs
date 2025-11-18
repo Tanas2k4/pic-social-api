@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PicSocial.Server.Models;
+using PicSocial.Server.Services.Interfaces;
 
 namespace PicSocial.Server.Controllers
 {
@@ -14,44 +15,35 @@ namespace PicSocial.Server.Controllers
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationDbContext _context;
-        public AdminController(UserManager<ApplicationUser> userManager, ApplicationDbContext context)
+        private readonly IAdminService _adminService;
+        public AdminController(UserManager<ApplicationUser> userManager, ApplicationDbContext context, IAdminService adminService)
         {
             _userManager = userManager;
             _context = context;
+            _adminService = adminService;
         }
 
         //GET api/admin/users
         [HttpGet("users")]
         public async Task<IActionResult> GetAllUser()
         {
-            var users = await _context.Users
-                .Select(u => new { u.AvatarUrl, u.FirstName, u.UserName, u.Email })
-                .ToListAsync();
-
+            var users = await _adminService.GetAllUserAsync();
             return Ok(users);
         }
 
-        //DELETE api/admin/users/delete/{userId}
-        [HttpDelete("users/{userId}")]
+        //DELETE api/admin/user/{userId}
+        [HttpDelete("user/{userId}")]
         public async Task<IActionResult> DeleteUser(string userId)
         {
-            //gọi một user khác
-            var targetUser = await _userManager.FindByIdAsync(userId);
-            if (targetUser == null)
-                return NotFound(new { error = "User not found"});
-                
-            var result = await _userManager.DeleteAsync(targetUser);
-            if (!result.Succeeded)
-                return BadRequest(new { error = result.Errors });
-            return Ok(new { message = "delete completed!" });
+           var result = await _adminService.DeleteUserAsync(userId);
+            return Ok(result);
         }
 
         //GET api/admin/reports //xem tất cả report
         [HttpGet("reports")]
         public async Task<IActionResult> GetAllReports()
         {
-            var reports = await _context.Reports
-                .ToListAsync();
+            var reports = await _adminService.GetAllReportsAsync();
             return Ok(reports);
         }
 
@@ -59,10 +51,7 @@ namespace PicSocial.Server.Controllers
         [HttpGet("reports/{postId}")]
         public async Task<IActionResult> GetReportById (Guid postId)
         {
-            var reports = await _context.Reports
-                .Where(p => p.PostId == postId)
-                .ToListAsync();
-
+            var reports = await _adminService.GetReportByIdAsync(postId);
             return Ok(reports);
         }
 
@@ -70,9 +59,8 @@ namespace PicSocial.Server.Controllers
         [HttpGet("posts")]
         public async Task<IActionResult> TotalPost()
         {
-            var allPost = await _context.Posts.ToListAsync();
+            var allPost = await _adminService.TotalPostAsync();
             return Ok(allPost);
         }
-
     } 
 }

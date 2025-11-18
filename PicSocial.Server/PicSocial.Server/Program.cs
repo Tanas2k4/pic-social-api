@@ -1,12 +1,14 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.OpenApi.Models;
-using PicSocial.Server.Models;
-using PicSocial.Server.Data;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using System.Text;
+using Microsoft.OpenApi.Models;
+using PicSocial.Server.Data;
+using PicSocial.Server.Models;
 using PicSocial.Server.Services;
+using PicSocial.Server.Services.Implementations;
+using PicSocial.Server.Services.Interfaces;
+using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 //Add DbContext     
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -38,7 +40,8 @@ builder.Services.AddAuthentication(options =>
 });
 // Add services to the container.
 builder.Services.AddControllers();
-
+builder.Services.AddScoped<IFollowService, FollowService>();
+builder.Services.AddScoped<IAdminService, AdminService>();
 // Add Google Cloud Storage service
 builder.Services.AddSingleton<GoogleCloudStorageService>();
 // Swagger/OpenAPI
@@ -51,7 +54,6 @@ builder.Services.AddSwaggerGen(c =>
         Version = "v1"
     });
 });
-
 // CORS: cho phép FE gọi API
 builder.Services.AddCors(options =>
 {
@@ -70,7 +72,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
- 
+
 // app.UseHttpsRedirection(); // Tắt HTTPS để tạm thời chặn cổng https
 
 // Áp dụng CORS
