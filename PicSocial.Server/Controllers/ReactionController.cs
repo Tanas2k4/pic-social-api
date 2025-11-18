@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PicSocial.Server.Models;
 using PicSocial.Server.Models.Entities;
+using PicSocial.Server.Services.Interfaces;
 
 namespace PicSocial.Server.Controllers
 {
@@ -14,12 +15,13 @@ namespace PicSocial.Server.Controllers
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationDbContext _context;
-        public ReactionController(UserManager<ApplicationUser> userManager, ApplicationDbContext context)
+        private readonly IReactionService _reactionService;
+        public ReactionController(UserManager<ApplicationUser> userManager, ApplicationDbContext context, IReactionService reactionService)
         {
             _userManager = userManager;
             _context = context;
+            _reactionService = reactionService;
         }
-
 
         //POST api/reaction/
         [HttpPost("{postId}")]
@@ -29,35 +31,8 @@ namespace PicSocial.Server.Controllers
             if (currentUser == null)
                 return Unauthorized();
 
-            var post = await _context.Posts
-                .FirstOrDefaultAsync(p => p.PostId == postId);
-            if (post == null)
-                return NotFound();
-
-            var reaction = await _context.Reactions
-                .FirstOrDefaultAsync(r => r.PostId == postId && r.UserId == currentUser.Id);
-
-            if (reaction != null)
-            {
-                _context.Reactions.Remove(reaction);
-                post.ReactionCount--;
-                await _context.SaveChangesAsync();
-                return Ok(new {message = "unLiked"});
-            }
-            else
-            {
-                var newReaction = new Reaction
-                {
-                    PostId = postId,
-                    UserId = currentUser.Id,
-                    CreatedDate = DateTimeOffset.Now
-                };
-                _context.Reactions.Add(newReaction);
-
-                post.ReactionCount++; //Tăng số lượng lượt thích trong Reaction
-                await _context.SaveChangesAsync();  
-                return Ok(new { message = "liked"});
-            }               
+            var result = await _reactionService.ReactionPostAsync(currentUser.Id, postId);
+            return Ok(result);
         }  
     }
 }
