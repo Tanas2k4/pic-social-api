@@ -31,30 +31,24 @@ namespace PicSocial.Server.Controllers
             if (currentUser == null)
                 return Unauthorized();
             
-            var profileUser = await _profileService.GetProfileAsync(currentUser.Id, userId);
+            var profileUser = await _profileService.GetProfileByIdAsync(currentUser.Id, userId);
             if(profileUser == null)
                 return NotFound(new {message = "User not found"});
 
             return Ok(profileUser);
         }
 
-      
-
+        // GET api/profile/me
         [HttpGet("me")]
         public async Task<IActionResult> GetMyProfile()
         {
             var currentUser = await _userManager.GetUserAsync(User);
             if (currentUser == null)
                 return Unauthorized();
-            var userDto = new UserProfileDto
-            {
-                UserName = currentUser.UserName!,
-                FirstName = currentUser.FirstName,
-                Bio = currentUser.Bio,
-                AvatarUrl = currentUser.AvatarUrl,
-                CoverPhotoUrl = currentUser.CoverPhotoUrl
-            };
-           return Ok(userDto);
+            
+            var myProfile = await _profileService.GetMyProfileAsync(currentUser.Id);
+
+            return Ok(myProfile);
         }
         
         // PUT api/profile
@@ -66,15 +60,11 @@ namespace PicSocial.Server.Controllers
                 return Unauthorized();
             //Cập nhật thông tin người dùng
             //Cập nhật theo từng trường nếu nó không null hoặc rỗng
-            if (!string.IsNullOrWhiteSpace(updateProfileDto.FirstName))
-                currentUser.FirstName = updateProfileDto.FirstName;
+            
 
-            if (!string.IsNullOrWhiteSpace(updateProfileDto.Bio))
-                currentUser.Bio = updateProfileDto.Bio;
-
-            var result = await _userManager.UpdateAsync(currentUser);
-            if (!result.Succeeded)
-                return BadRequest(result.Errors);
+            var updateMyProfile = await _profileService.UpdateMyProfileAsync(currentUser.Id, updateProfileDto);
+            if (!updateMyProfile)
+                return BadRequest(new {message = "Failed to update profile"}); 
 
             return Ok(new {message ="Profile updated successfully" });
         }
