@@ -1,12 +1,11 @@
-﻿using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PicSocial.Server.DTOs;
 using PicSocial.Server.Models;
 using PicSocial.Server.Models.Entities;
 using PicSocial.Server.Services.Interfaces;
-
+using PicSocial.Server.Shared;
 namespace PicSocial.Server.Services.Implementations
 {
 
@@ -28,24 +27,23 @@ namespace PicSocial.Server.Services.Implementations
             return isFollowing;
         }
 
-        public async Task<FollowResult> FollowUserAsync(string currentUserId, FollowDto followDto)
+        public async Task<Result> FollowUserAsync(string currentUserId, FollowDto followDto)
         {
             var currentUser = await _userManager.FindByIdAsync(currentUserId);
             if (currentUser == null)
-                return new FollowResult { Success = false, Message = "Current user not found" };
-
+                return  Result.Fail("Current user not found");
             if (currentUserId == followDto.Id)
-                return new FollowResult { Success = false, Message = "You cannot follow yourself" };
+                return  Result.Fail("You cannot follow yourself");
 
             var userToFollow = await _userManager.FindByIdAsync(followDto.Id);
             if (userToFollow == null)
-                return new FollowResult { Success = false, Message = "User not found" };
+                return Result.Fail("User not found");
 
             var existingFollow = await _context.Follows
                 .FirstOrDefaultAsync(f => f.FollowerId == currentUserId && f.FollowedId == followDto.Id);
 
             if (existingFollow != null)
-                return new FollowResult { Success = false, Message = "You are already following this user" };
+                return Result.Fail("You are already following this user");
 
             // Tạo follow mới
             var follow = new Follow
@@ -62,7 +60,7 @@ namespace PicSocial.Server.Services.Implementations
 
             await _context.SaveChangesAsync();
 
-            return new FollowResult { Success = true, Message = "Followed successfully" };
+            return Result.Ok("Followed successfully");
         }
 
 
