@@ -27,43 +27,6 @@ namespace PicSocial.Server.Controllers
             _service = service;
         }
 
-        // POST api/follow //id là id của người mà bạn muốn follow
-        [HttpPost]
-        public async Task<IActionResult> FollowUser([FromBody] FollowDto followDto)
-        {
-            var currentUser = await _userManager.GetUserAsync(User);
-            if (currentUser == null)
-                return Unauthorized();
-
-            if (currentUser.Id == followDto.Id)
-                return BadRequest("You cannot follow yourself.");
-
-            var userToFollow = await _userManager.FindByIdAsync(followDto.Id);
-            if (userToFollow == null)
-                return NotFound("User not found.");
-            var existingFollow = _context.Follows.FirstOrDefault(f => f.FollowerId == currentUser.Id && f.FollowedId == followDto.Id);
-            if (existingFollow != null)
-                return BadRequest("You are already following this user.");
-
-            //Tạo một thực thể Follow mới
-            var follow = new Follow
-            {
-                FollowerId = currentUser.Id,
-                FollowedId = followDto.Id,
-                CreatedDate = DateTimeOffset.Now
-            };
-            _context.Follows.Add(follow);
-
-            currentUser.FollowersCount++;
-            userToFollow.FollowingCount++;
-            
-            _context.Users.Update(currentUser);
-            _context.Users.Update(userToFollow);
-
-            await _context.SaveChangesAsync();
-            return Ok("Successfully followed the user.");
-        }
-
         //GET api/follow/isfollowing/{id} //id là id của người mà bạn muốn kiểm tra xem có đang theo dõi không
         [HttpGet("isFollowing/{userId}")]
         public async Task<IActionResult> IsFollowing(string userId)
@@ -74,7 +37,22 @@ namespace PicSocial.Server.Controllers
 
             var isFollowing = await _service.IsFollowingAsync(currentUser.Id, userId);
 
-            return Ok( new { message = isFollowing});
+            return Ok(new { message = isFollowing });
+        }
+
+        // POST api/follow //id là id của người mà bạn muốn follow
+        [HttpPost]
+        public async Task<IActionResult> FollowUser([FromBody] FollowDto followDto)
+        {
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+                return Unauthorized();
+
+            var result = await _service.FollowUserAsync(currentUser.Id, followDto);
+            if (!result.Success)
+                return BadRequest(new { error = result.Message });
+
+            return Ok(new { message = result.Message });
         }
 
         // DELETE api/follow/{id} //id là id của người mà bạn muốn unfollow
@@ -85,25 +63,10 @@ namespace PicSocial.Server.Controllers
             if (currentUser == null)
                 return Unauthorized();
 
-            //Kiểm tra xem người dùng có đang theo dõi người này không
-            var follow = await _context.Follows
-                .FirstOrDefaultAsync(f => f.FollowerId == currentUser.Id && f.FollowedId == userId);
-            if (follow == null)
-                return NotFound("You are not following this user.");
-            var userToUnfollow = await _userManager.FindByIdAsync(userId);
-            if (userToUnfollow == null)
-                return NotFound("User not found");
-
-            _context.Follows.Remove(follow);
-
-            currentUser.FollowersCount--;
-            userToUnfollow.FollowingCount--;
-
-            _context.Users.Update(currentUser);
-            _context.Users.Update(userToUnfollow);
-
-            await _context.SaveChangesAsync();
-            return Ok("Successfully unfollowed the user.");
+            var result = await _service.UnfollowUserAsync(currentUser.Id, userId);
+            if (!result)
+                return BadRequest("Failed to unfollow user");
+            return Ok(new { message = "Successfully unfollowed the user." });
         }
 
         // GET api/follow/followers/{id} //id là id của người dùng mà bạn muốn lấy danh sách người theo dõi
@@ -113,20 +76,9 @@ namespace PicSocial.Server.Controllers
             var user = await _userManager.FindByIdAsync(id);
             if (user == null)
                 return NotFound("User not found.");
-            //trả về số lượng người đang theo dõi mình
-            var followerCount = _context.Follows.Count(f => f.FollowedId == id);
 
-            //trả về danh sách người đang theo dõi mình
-            var followers = await _context.Follows
-                .Where(f => f.FollowedId == id)
-                .Select(f => new { f.FollowerId, f.Follower.UserName, f.Follower.AvatarUrl })
-                .ToListAsync();
-
-            return Ok(new
-            {
-                FollowerCount = followerCount,
-                Followers = followers
-            });
+            var result = await _service.GetFollowerAsync(id);
+            return Ok(result);
         }
 
         // GET api/follow/following/{id} //id là id của người dùng mà bạn muốn lấy danh sách người mà họ đang theo dõi
@@ -137,20 +89,8 @@ namespace PicSocial.Server.Controllers
             if (user == null)
                 return NotFound("User not found.");
 
-            //trả về số lượng người mà họ đang theo dõi
-            var followingCount = _context.Follows.Count(f => f.FollowerId == id);
-
-            //trả về danh sách người mà họ đang theo dõi
-            var following = await _context.Follows
-                .Where(f => f.FollowerId == id)
-                .Select(f => new { f.FollowedId, f.Followed.UserName, f.Followed.AvatarUrl })
-                .ToListAsync();
-
-            return Ok(new
-            {
-                FollowingCount = followingCount,
-                Following = following
-            });
+            var result = await _service.GetFollowingAsync(id);
+            return Ok(result);
         }
     }
 }
