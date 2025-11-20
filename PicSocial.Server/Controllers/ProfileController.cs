@@ -1,12 +1,8 @@
-using System.Net;
-using System.Net.WebSockets;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using PicSocial.Server.DTOs;
 using PicSocial.Server.Models;
-using PicSocial.Server.Services;
-using PicSocial.Server.Controllers;
 using PicSocial.Server.Services.Interfaces;
 namespace PicSocial.Server.Controllers
 {
@@ -58,9 +54,9 @@ namespace PicSocial.Server.Controllers
             var currentUser = await _userManager.GetUserAsync(User);
             if (currentUser == null)
                 return Unauthorized();
+
             //Cập nhật thông tin người dùng
             //Cập nhật theo từng trường nếu nó không null hoặc rỗng
-           
             var result = await _profileService.UpdateMyProfileAsync(currentUser.Id, updateProfileDto);
             if (!result)
                 return BadRequest(new {message = "Failed to update profile"}); 
