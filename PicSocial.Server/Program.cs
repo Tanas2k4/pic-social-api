@@ -42,6 +42,9 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddControllers();
 builder.Services.AddScoped<IFollowService, FollowService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
+builder.Services.AddScoped<IReportService, ReportService>();
+builder.Services.AddScoped<IProfileService, ProfileService>();
+builder.Services.AddScoped<IReactionService, ReactionService>();
 // Add Google Cloud Storage service
 builder.Services.AddSingleton<GoogleCloudStorageService>();
 // Swagger/OpenAPI

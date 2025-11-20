@@ -6,6 +6,7 @@ using Microsoft.VisualBasic;
 using PicSocial.Server.DTOs;
 using PicSocial.Server.Models;
 using PicSocial.Server.Models.Entities;
+using PicSocial.Server.Services.Interfaces;
 
 namespace PicSocial.Server.Controllers
 {
@@ -15,12 +16,11 @@ namespace PicSocial.Server.Controllers
     public class ReportController : ControllerBase
     {
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly ApplicationDbContext _context;
-
-        public ReportController(UserManager<ApplicationUser> userManager, ApplicationDbContext context)
+        private readonly IReportService _service;
+        public ReportController(UserManager<ApplicationUser> userManager, IReportService _service)
         {
             _userManager = userManager;
-            _context = context;
+            this._service = _service;
         }
 
         //POST api/report/{postId} //send report to admin 
@@ -31,34 +31,12 @@ namespace PicSocial.Server.Controllers
             if (currentUser == null)
                 return Unauthorized();
 
-            var post = await _context.Posts
-                .FirstOrDefaultAsync(p => p.PostId == postId);
-            if (post == null)
-                return NotFound();
-
-            var report = new Report
+            var result = await _service.ReportPostAsync(postId, currentUser.Id,  reportDto.Reason);
+            if(!result)
             {
-                PostId = post.PostId,
-                UserId = currentUser.Id,
-                Reason = reportDto.Reason,
-                CreatedDate = DateTimeOffset.Now,
-                Status = "Pending"
-            };
-
-            _context.Reports.Add(report);
-            await _context.SaveChangesAsync();
-            return Ok(new
-            {
-                message = "report sent!",
-                report = new
-                {
-                    postId = report.PostId,
-                    userId = report.UserId,
-                    reason = report.Reason,
-                    createdDate = report.CreatedDate,
-                    status = report.Status
-                }
-            });
+                return BadRequest(new { message = "Unable to report the post." });
+            }
+            return Ok(new { message = "Post reported successfully." });
         }
     }
 }
