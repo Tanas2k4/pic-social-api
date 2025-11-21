@@ -15,13 +15,11 @@ namespace PicSocial.Server.Controllers
     public class ShareController : ControllerBase
     {
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly ApplicationDbContext _context;
         private readonly IShareService _service;
 
         public ShareController(UserManager<ApplicationUser> userManager, ApplicationDbContext context, IShareService service)
         {
             _userManager = userManager;
-            _context = context;
             _service = service;
         }
 
@@ -34,8 +32,8 @@ namespace PicSocial.Server.Controllers
                 return Unauthorized(new {message = "You don't have permission" });
 
             var result = await _service.SharePostAsync(postId, currentUser.Id,  shareDto);
-            if(result == null)
-                return NotFound(new { message = "Post not found"});
+            if(result == null){
+                return NotFound(new { message = "Post not found"});}
             return Ok(result);
         }
 
@@ -48,9 +46,8 @@ namespace PicSocial.Server.Controllers
                 return Unauthorized();
 
             var result = await _service.DeleteSharePostAsync(postId, shareId, currentUser.Id);
-            if (!result.Success)
-                return BadRequest(new { message = result.Message });
-            return Ok(new { message = result.Message });
+            
+            return StatusCode(result.StatusCode, new { message = result.Message });
         }
     }
 }

@@ -45,10 +45,8 @@ namespace PicSocial.Server.Controllers
                 return Unauthorized();
 
             var result = await _service.FollowUserAsync(currentUser.Id, followDto);
-            if (!result.Success)
-                return BadRequest(new { error = result.Message });
-
-            return Ok(new { message = result.Message });
+            
+            return StatusCode(result.StatusCode, new { message = result.Message });
         }
 
         // DELETE api/follow/{id} //id là id của người mà bạn muốn unfollow

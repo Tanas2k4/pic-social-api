@@ -52,7 +52,7 @@ namespace PicSocial.Server.Services.Implementations
                 .ToListAsync();
             return new OkObjectResult(reports);
         }
-
+    
         //tổng số bài viết
         public async Task<IActionResult> TotalPostAsync()
         {

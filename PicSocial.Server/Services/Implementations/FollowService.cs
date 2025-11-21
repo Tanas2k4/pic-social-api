@@ -31,19 +31,19 @@ namespace PicSocial.Server.Services.Implementations
         {
             var currentUser = await _userManager.FindByIdAsync(currentUserId);
             if (currentUser == null)
-                return  Result.Fail("Current user not found");
+                return  Result.NotFound("Current user not found");
             if (currentUserId == followDto.Id)
-                return  Result.Fail("You cannot follow yourself");
+                return  Result.NotFound("You cannot follow yourself");
 
             var userToFollow = await _userManager.FindByIdAsync(followDto.Id);
             if (userToFollow == null)
-                return Result.Fail("User not found");
+                return Result.NotFound("User not found");
 
             var existingFollow = await _context.Follows
                 .FirstOrDefaultAsync(f => f.FollowerId == currentUserId && f.FollowedId == followDto.Id);
 
             if (existingFollow != null)
-                return Result.Fail("You are already following this user");
+                return Result.Bad("You are already following this user");
 
             // Tạo follow mới
             var follow = new Follow

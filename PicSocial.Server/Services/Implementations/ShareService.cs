@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PicSocial.Server.DTOs;
 using PicSocial.Server.Models;
@@ -74,21 +73,21 @@ namespace PicSocial.Server.Services.Implementations
         {
             var currentUser = await _userManager.FindByIdAsync(currentUserId);
             if (currentUser == null)
-                return Result.Fail("Current user not found");
+                return Result.NotFound("Current user not found");
             
             var share = await _context.Shares
                 .FirstOrDefaultAsync(s => s.ShareId == shareId && s.PostId == postId);
             if (share == null)
-                return Result.Fail("Share not found");           
+                return Result.NotFound("Share not found");           
 
             var post = await _context.Posts
                 .FirstOrDefaultAsync(p => p.PostId == postId);
             if (post == null)
-                return Result.Fail("Post not found");
+                return Result.NotFound("Post not found");
 
             var isAdmin = await _userManager.IsInRoleAsync(currentUser, "Admin");
             if (share.UserId != currentUserId && !isAdmin)
-                return Result.Fail("Unauthorized to delete this share");
+                return Result.Unauthorized("Unauthorized to delete this share");
            
             _context.Shares.Remove(share);
             

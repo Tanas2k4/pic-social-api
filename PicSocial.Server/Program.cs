@@ -46,6 +46,7 @@ builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddScoped<IProfileService, ProfileService>();
 builder.Services.AddScoped<IReactionService, ReactionService>();
 builder.Services.AddScoped<IShareService, ShareService>();
+builder.Services.AddScoped<ICommentService, CommentService>();
 // Add Google Cloud Storage service
 builder.Services.AddSingleton<GoogleCloudStorageService>();
 // Swagger/OpenAPI
