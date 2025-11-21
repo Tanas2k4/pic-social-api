@@ -7,7 +7,7 @@ namespace PicSocial.Server.Services.Interfaces
     {
         Task<bool> IsFollowingAsync(string currentUserId, string targetUserId);
         Task<Result> FollowUserAsync(string currentUserId, FollowDto followDto);
-        Task<bool> UnfollowUserAsync(string currentUserId, string targetUserId);
+        Task<Result> UnfollowUserAsync(string currentUserId, string targetUserId);
         Task<IActionResult> GetFollowerAsync(string userId);
         Task<IActionResult> GetFollowingAsync(string userId);
     }

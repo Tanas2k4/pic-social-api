@@ -32,11 +32,8 @@ namespace PicSocial.Server.Controllers
                 return Unauthorized();
 
             var result = await _service.ReportPostAsync(postId, currentUser.Id,  reportDto.Reason);
-            if(!result)
-            {
-                return BadRequest(new { message = "Unable to report the post." });
-            }
-            return Ok(new { message = "Post reported successfully." });
+            
+            return StatusCode(result.StatusCode, new { result.Message });
         }
     }
 }

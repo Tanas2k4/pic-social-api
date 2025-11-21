@@ -67,7 +67,7 @@ namespace PicSocial.Server.Controllers
         public async Task<IActionResult> GetCommentPost(Guid postId)
         {
             var result = await _commentService.GetCommentsByPostIdAsync(postId);
-            return StatusCode(result.StatusCode, result);
+            return StatusCode(result.StatusCode, result.Data);
         }
     }
 }

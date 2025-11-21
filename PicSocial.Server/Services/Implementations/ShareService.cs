@@ -19,18 +19,18 @@ namespace PicSocial.Server.Services.Implementations
         }
 
         //share a post
-        public async Task<ShareResponseDto?> SharePostAsync(Guid postId, string userId, ShareDto shareDto)
+        public async Task<Result<ShareResponseDto>> SharePostAsync(Guid postId, string userId, ShareDto shareDto)
         {
             var user = await _context.Users.FindAsync(userId);
             if (user == null)
-                return null;
+                return Result<ShareResponseDto>.NotFound("user not found");
 
             var post = await _context.Posts
                 .Include(p => p.Photos)
                 .Include(p => p.User)
                 .FirstOrDefaultAsync(p => p.PostId == postId);
             if (post == null)
-                return null;
+                return Result<ShareResponseDto>.NotFound("Post not found");
 
             var share = new Share
             {
@@ -46,7 +46,7 @@ namespace PicSocial.Server.Services.Implementations
 
             await _context.SaveChangesAsync();
 
-            return new ShareResponseDto
+            return Result<ShareResponseDto>.Ok(new ShareResponseDto
             {
                 Message = "Post shared successfully",
                 Share = new ShareDetailDto
@@ -54,7 +54,7 @@ namespace PicSocial.Server.Services.Implementations
                     PostId = postId,
                     ShareUserName = user.UserName,
                     Caption = share.Caption,
-                    SharePlatform = share.SharePlatform,                
+                    SharePlatform = share.SharePlatform,
                     Post = new
                     {
                         PostOwnerUserName = post.User.UserName,
@@ -65,7 +65,7 @@ namespace PicSocial.Server.Services.Implementations
                     },
                     CreatedDate = share.CreatedDate,
                 }
-            };
+            });
         }
 
         //delete share post

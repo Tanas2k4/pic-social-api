@@ -1,9 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using PicSocial.Server.Shared;
 
 namespace PicSocial.Server.Services.Interfaces
 {
     public interface IReactionService
     {
-        Task<string> ReactionPostAsync(string userId, Guid postId);
+        Task<Result> ReactionPostAsync(string userId, Guid postId);
     }
 }

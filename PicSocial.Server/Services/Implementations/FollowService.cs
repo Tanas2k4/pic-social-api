@@ -65,20 +65,20 @@ namespace PicSocial.Server.Services.Implementations
 
 
         // Unfollow user
-        public async Task<bool> UnfollowUserAsync(string currentUserId, string targetUserId)
+        public async Task<Result> UnfollowUserAsync(string currentUserId, string targetUserId)
         {
             var currentUser = await _userManager.FindByIdAsync(currentUserId);
             if (currentUser == null)
-                return false;
+                return Result.Unauthorized();
 
             var userToUnfollow = await _userManager.FindByIdAsync(targetUserId);
             if (userToUnfollow == null)
-                return false;
+                return Result.NotFound("User not found");
 
             var existingFollow = await _context.Follows
                 .FirstOrDefaultAsync(f => f.FollowerId == currentUserId && f.FollowedId == targetUserId);
             if (existingFollow == null)
-                return false; // Chưa follow
+                return Result.Bad("you haven't followed this user before"); // Chưa follow
 
             _context.Follows.Remove(existingFollow);
             currentUser.FollowingCount--;
@@ -88,7 +88,7 @@ namespace PicSocial.Server.Services.Implementations
             _context.Users.Update(userToUnfollow);
 
             await _context.SaveChangesAsync();
-            return true;
+            return Result.Ok("Successfully unfollowed the user.");
         }
 
         //Xem danh sách người theo dõi

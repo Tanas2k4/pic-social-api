@@ -32,7 +32,7 @@ namespace PicSocial.Server.Controllers
                 return Unauthorized();
 
             var result = await _reactionService.ReactionPostAsync(currentUser.Id, postId);
-            return Ok(result);
+            return StatusCode(result.StatusCode, new {message = result.Message});
         }  
     }
 }

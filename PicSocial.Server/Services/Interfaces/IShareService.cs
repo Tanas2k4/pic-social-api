@@ -5,7 +5,7 @@ namespace PicSocial.Server.Services.Interfaces
 {
     public interface IShareService
     {
-        Task<ShareResponseDto?> SharePostAsync(Guid postId, string userId, ShareDto shareDto);
+        Task<Result<ShareResponseDto>> SharePostAsync(Guid postId, string userId, ShareDto shareDto);
         Task<Result> DeleteSharePostAsync(Guid postId, Guid shareId, string currenUserId);
     }
 }

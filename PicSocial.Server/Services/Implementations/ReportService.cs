@@ -1,6 +1,7 @@
 ﻿using PicSocial.Server.Models;
 using PicSocial.Server.Models.Entities;
 using PicSocial.Server.Services.Interfaces;
+using PicSocial.Server.Shared;
 using System.Security.Cryptography.X509Certificates;
 
 namespace PicSocial.Server.Services.Implementations
@@ -13,11 +14,11 @@ namespace PicSocial.Server.Services.Implementations
             _context = context;
         }
 
-        public async Task<bool> ReportPostAsync(Guid postId, string userId, string reason)
+        public async Task<Result> ReportPostAsync(Guid postId, string userId, string reason)
         {
             var post = await _context.Posts.FindAsync(postId);
             if (post == null)
-                return false;
+                return Result.NotFound("Post not found");
             var report = new Report
             {
                 PostId = postId,
@@ -28,7 +29,7 @@ namespace PicSocial.Server.Services.Implementations
             };
             _context.Reports.Add(report);
             await _context.SaveChangesAsync();
-            return true;
+            return Result.Ok("report sent");
         }
     }
 }

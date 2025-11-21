@@ -58,9 +58,8 @@ namespace PicSocial.Server.Controllers
                 return Unauthorized();
 
             var result = await _service.UnfollowUserAsync(currentUser.Id, userId);
-            if (!result)
-                return BadRequest("Failed to unfollow user");
-            return Ok(new { message = "Successfully unfollowed the user." });
+            
+            return StatusCode(result.StatusCode, new { message = result.Message});
         }
 
         // GET api/follow/followers/{id} //id là id của người dùng mà bạn muốn lấy danh sách người theo dõi

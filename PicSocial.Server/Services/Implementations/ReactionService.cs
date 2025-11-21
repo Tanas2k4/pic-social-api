@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using PicSocial.Server.Models;
 using PicSocial.Server.Models.Entities;
 using PicSocial.Server.Services.Interfaces;
+using PicSocial.Server.Shared;
 
 namespace PicSocial.Server.Services.Implementations
 {
@@ -17,12 +18,12 @@ namespace PicSocial.Server.Services.Implementations
         }
 
         // Reaction cho 1 bài viết
-        public async Task<string> ReactionPostAsync(string userId, Guid postId)
+        public async Task<Result> ReactionPostAsync(string userId, Guid postId)
         {
             var post = await _context.Posts
                 .FirstOrDefaultAsync(p => p.PostId == postId);
             if (post == null)
-                return "Post not found";
+                return Result.NotFound("Post not found");
             var reaction = await _context.Reactions
                 .FirstOrDefaultAsync(r => r.PostId == postId && r.UserId == userId);
             if (reaction != null)
@@ -30,7 +31,7 @@ namespace PicSocial.Server.Services.Implementations
                 _context.Reactions.Remove(reaction);
                 post.ReactionCount--;
                 await _context.SaveChangesAsync();
-                return "unLiked";
+                return Result.Ok("unLiked");
             }
             else
             {
@@ -43,7 +44,7 @@ namespace PicSocial.Server.Services.Implementations
                 _context.Reactions.Add(newReaction);
                 post.ReactionCount++; //Tăng số lượng lượt thích trong Reaction
                 await _context.SaveChangesAsync();
-                return "liked";
+                return Result.Ok("liked");
             }
         }
     }
