@@ -32,9 +32,7 @@ namespace PicSocial.Server.Controllers
                 return Unauthorized(new {message = "You don't have permission" });
 
             var result = await _service.SharePostAsync(postId, currentUser.Id,  shareDto);
-            if(result == null){
-                return NotFound(new { message = "Post not found"});}
-            return Ok(result);
+            return StatusCode(result.StatusCode, result.Data);
         }
 
         //DELETE api/share/{shareId}?post={postId}

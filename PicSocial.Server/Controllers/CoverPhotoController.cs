@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using PicSocial.Server.Models;
 using PicSocial.Server.Services;
+using PicSocial.Server.Services.Interfaces;
 
 namespace PicSocial.Server.Controllers
 {
@@ -12,12 +13,12 @@ namespace PicSocial.Server.Controllers
     public class CoverPhotoController : ControllerBase
     {
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly GoogleCloudStorageService _googleCloudStorageService;
+        private readonly ICoverPhotoService _coverPhotoService;
 
-        public CoverPhotoController(UserManager<ApplicationUser> userManager, GoogleCloudStorageService googleCloudStorageService)
+        public CoverPhotoController(UserManager<ApplicationUser> userManager, ICoverPhotoService coverPhotoService)
         {
             _userManager = userManager;
-            _googleCloudStorageService = googleCloudStorageService;
+            _coverPhotoService = coverPhotoService;
         }
 
         //POST api/coverPhoto
@@ -28,30 +29,8 @@ namespace PicSocial.Server.Controllers
             if (currentUser == null)
                 return Unauthorized();
 
-            //Kiểm tra file
-            if (photoCover == null)
-            {
-                return BadRequest("not found");
-            }
-
-            //ghì đè nếu có ảnh bìa cũ 
-            if (!string.IsNullOrEmpty(currentUser.CoverPhotoUrl))
-            {
-                var oldCoverPhoto = Path.GetFileName(currentUser.CoverPhotoUrl);
-                await _googleCloudStorageService.DeleteFileAsync($"coverPhotos/{oldCoverPhoto}");
-            }
-
-            var objectName = $"coverPhotos/{Guid.NewGuid()}{Path.GetExtension(photoCover.FileName)}";
-            var fileUrl = await _googleCloudStorageService.UploadFileAsync(
-                photoCover.OpenReadStream(),
-                objectName,
-                photoCover.ContentType
-            );
-
-            currentUser.CoverPhotoUrl = fileUrl;
-            await _userManager.UpdateAsync(currentUser);
-
-            return Ok(new { message = "cover photo uploaded" });
+            var result = await _coverPhotoService.UploadPhotoCoverAsync(currentUser.Id, photoCover);
+            return StatusCode(result.StatusCode, new { message = result.Message});
         }
 
         //DELETE api/coverPhoto
@@ -62,16 +41,8 @@ namespace PicSocial.Server.Controllers
             if (currentUser == null)
                 return Unauthorized();
 
-            if (string.IsNullOrEmpty(currentUser.CoverPhotoUrl))
-                return BadRequest();
-
-            var objectName = currentUser.CoverPhotoUrl.Split("/").Last();
-            await _googleCloudStorageService.DeleteFileAsync($"coverPhotos/{objectName}");
-
-            currentUser.AvatarUrl = objectName;
-            await _userManager.UpdateAsync(currentUser);
-
-            return Ok(new { message = "delete success" });
+            var result = await _coverPhotoService.DeletePhotoCoverAsync(currentUser.Id);
+            return StatusCode(result.StatusCode, new { message = result.Message});
         }
     }
 }

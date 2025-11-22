@@ -19,18 +19,18 @@ namespace PicSocial.Server.Services.Implementations
         }
 
         //share a post
-        public async Task<Result<ShareResponseDto>> SharePostAsync(Guid postId, string userId, ShareDto shareDto)
+        public async Task<Result<ShareCreateDto>> SharePostAsync(Guid postId, string userId, ShareDto shareDto)
         {
             var user = await _context.Users.FindAsync(userId);
             if (user == null)
-                return Result<ShareResponseDto>.NotFound("user not found");
+                return Result<ShareCreateDto>.NotFound("user not found");
 
             var post = await _context.Posts
                 .Include(p => p.Photos)
                 .Include(p => p.User)
                 .FirstOrDefaultAsync(p => p.PostId == postId);
             if (post == null)
-                return Result<ShareResponseDto>.NotFound("Post not found");
+                return Result<ShareCreateDto>.NotFound("Post not found");
 
             var share = new Share
             {
@@ -46,7 +46,7 @@ namespace PicSocial.Server.Services.Implementations
 
             await _context.SaveChangesAsync();
 
-            return Result<ShareResponseDto>.Ok(new ShareResponseDto
+            return Result<ShareCreateDto>.Ok(new ShareCreateDto
             {
                 Message = "Post shared successfully",
                 Share = new ShareDetailDto
