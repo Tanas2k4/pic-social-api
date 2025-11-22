@@ -3,9 +3,10 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using PicSocial.Server.Models;
 using PicSocial.Server.Services;
-using PicSocial.Server.DTOs;
 using PicSocial.Server.Models.Entities;
 using Microsoft.EntityFrameworkCore;
+using PicSocial.Server.DTOs.PostsDto;
+using PicSocial.Server.Services.Interfaces;
 namespace PicSocial.Server.Controllers
 {
     [ApiController]
@@ -13,75 +14,25 @@ namespace PicSocial.Server.Controllers
     [Authorize]
     public class PostController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
-        private readonly GoogleCloudStorageService _googleCloudStorageService;
         private readonly UserManager<ApplicationUser> _userManager;
-
-        public PostController(ApplicationDbContext context, GoogleCloudStorageService googleCloudStorageService, UserManager<ApplicationUser> userManager)
+        private readonly IPostService _postService;
+        
+        public PostController( UserManager<ApplicationUser> userManager, IPostService postService)
         {
-            _context = context;
-            _googleCloudStorageService = googleCloudStorageService;
             _userManager = userManager;
+            _postService = postService;
         }
 
         //POST api/post
         [HttpPost]
         public async Task<IActionResult> UploadPhoto([FromForm] string title, [FromForm] List<IFormFile> files)
-        {
-            //Kiểm tra files được tải lên
-            if (files == null || files.Count == 0)
-                return BadRequest("No files uploaded.");
-
+        {       
             var currentUser = await _userManager.GetUserAsync(User);
             if (currentUser == null)
                 return Unauthorized();
-
-            //Tao Post mới
-            var post = new Post
-            {
-                UserId = currentUser.Id,
-                Title = title,
-                CreatedDate = DateTimeOffset.Now
-            };
-
-            //Upload tung file len Google Cloud Storage va luu vao database
-            foreach (var file in files)
-            {
-                var objectName = $"Post/{currentUser.Id}/{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
-                var fileUrl = await _googleCloudStorageService
-                    .UploadFileAsync(
-                        file.OpenReadStream(),
-                        objectName,
-                        file.ContentType
-                    );
-
-                var photo = new Photo
-                {
-                    UserId = currentUser.Id,
-                    OriginalFileUrl = fileUrl,
-                    CreatedDate = DateTimeOffset.Now,
-                    IsPublic = true
-                };
-
-                post.Photos.Add(photo);
-            }
-
-            _context.Posts.Add(post);
-            await _context.SaveChangesAsync();
-
-            return Ok(new
-            {
-                postId = post.PostId,
-                userId = post.UserId,
-                title = post.Title,
-                createdDate = post.CreatedDate,
-                photo = post.Photos.Select(p => new
-                {
-                    photoId = p.PhotoId,
-                    originalFileUrl = p.OriginalFileUrl,
-                    isPublic = p.IsPublic
-                })
-            });
+            
+            var result = await _postService.UploadPhotoAsync(currentUser.Id, title, files);
+            return StatusCode(result.StatusCode, result.Data);
         }
 
         //DELETE api/post/delete/{postId}
@@ -91,59 +42,21 @@ namespace PicSocial.Server.Controllers
             var currentUser = await _userManager.GetUserAsync(User);
             if (currentUser == null)
                 return Unauthorized();
-
-            var post = await _context.Posts
-                .Include(p => p.Photos)
-                .FirstOrDefaultAsync(p => p.PostId == postId && p.UserId == currentUser.Id);
-            if (post == null)
-                return NotFound("Post not found.");
-
-            //Kiểm tra role Admin
-            var isAdmin = await _userManager.IsInRoleAsync(currentUser, "Admin");
-            if (!isAdmin && post.UserId != currentUser.Id)
-                return Forbid("you don't have permission");
-
-            //Xoa anh tren Google Cloud Storage
-            foreach (var photo in post.Photos)
-            {
-                var objectName = new Uri(photo.OriginalFileUrl).Segments.Last();
-                await _googleCloudStorageService.DeleteFileAsync(objectName);
-            }
-
-            //Xoa Post va anh trong database
-            _context.Posts.Remove(post);
-            await _context.SaveChangesAsync();
-
-            return Ok(new { message = "Post and associated photos deleted successfully." });
+            
+            var result = await _postService.DeletePostAsync(postId, currentUser.Id);
+            return StatusCode(result.StatusCode, new { message = result.Message });
         }
 
         //PUT api/post/update/{postId}
         [HttpPut("{postId}")]
-        public async Task<IActionResult> UpdatePost(Guid postId, [FromBody] UpdatePostDto updatePostDto)
+        public async Task<IActionResult> UpdatePost(Guid postId, [FromBody] PostUpdateDto updatePostDto)
         {
             var currentUser = await _userManager.GetUserAsync(User);
             if (currentUser == null)
                 return Unauthorized();
 
-            var post = await _context.Posts
-                .FirstOrDefaultAsync(p => p.PostId == postId && p.UserId == currentUser.Id);
-
-            if (post == null)
-                return NotFound("Post not found or you do not have permission to update this post.");
-
-            post.Title = updatePostDto.Title;
-            post.UpdatedDate = DateTimeOffset.Now;
-
-            await _context.SaveChangesAsync();
-
-            return Ok(new
-            {
-                postId = post.PostId,
-                userId = post.UserId,
-                title = post.Title,
-                createdDate = post.CreatedDate,
-                updatedDate = post.UpdatedDate
-            });
+            var result = await _postService.UpdatePostAsync(postId, currentUser.Id, updatePostDto.Title);
+            return StatusCode(result.StatusCode, result.Data);
         }
 
         //GET api/post/{userId} - Xem tat ca bai dang cua user
@@ -154,58 +67,16 @@ namespace PicSocial.Server.Controllers
             if (user == null)
                 return NotFound("User not found.");
 
-            var posts = await _context.Posts
-                .Where(p => p.UserId == userId)
-                .Select(p => new
-                {
-                    postId = p.PostId,
-                    userId = p.UserId,
-                    title = p.Title,
-                    createdDate = p.CreatedDate,
-                    photos = p.Photos.Select(photo => new
-                    {
-                        photoId = photo.PhotoId,
-                        originalFileUrl = photo.OriginalFileUrl,
-                        isPublic = photo.IsPublic
-                    }),
-                    reaction = p.ReactionCount,
-                    comment = p.CommentCount,
-                    share = p.ShareCount
-                    
-                })
-                .ToListAsync();
-
-            return Ok(posts);
+            var results = await _postService.GetPostsByUserAsync(userId);
+            return StatusCode(results.StatusCode, results.Data);
         }
 
         //GET api/post/view/{postId}
         [HttpGet("view/{postId}")]
         public async Task<IActionResult> GetPost(Guid postId)
         {
-            var post = await _context.Posts
-                .Where(p => p.PostId == postId)
-                .Select(p => new
-                {
-                    postId = p.PostId,
-                    userId = p.UserId,
-                    title = p.Title,
-                    createdDate = p.CreatedDate,
-                    photos = p.Photos.Select(photo => new
-                    {
-                        photoId = photo.PhotoId,
-                        originalFileUrl = photo.OriginalFileUrl,
-                        isPublic = photo.IsPublic
-                    }),
-                    reaction = p.ReactionCount,
-                    comment = p.CommentCount,
-                    share = p.ShareCount
-                })
-                .FirstOrDefaultAsync();
-
-            if (post == null)
-                return Ok(new { message = "Post not found." });
-
-            return Ok(post);
+            var result = await _postService.GetPostByIdAsync(postId);
+            return StatusCode(result.StatusCode, result.Data);
         }
     }
 }   

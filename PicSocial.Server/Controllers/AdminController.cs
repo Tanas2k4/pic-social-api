@@ -35,7 +35,15 @@ namespace PicSocial.Server.Controllers
         [HttpDelete("user/{userId}")]
         public async Task<IActionResult> DeleteUser(string userId)
         {
-           var result = await _adminService.DeleteUserAsync(userId);
+           var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null) 
+                return Unauthorized();
+            
+            var result = await _adminService.DeleteUserAsync(userId, currentUser.Id);
+            if (!result)
+            {
+                return BadRequest(new { message = "Xóa người dùng thất bại" });
+            }
             return Ok(result);
         }
 

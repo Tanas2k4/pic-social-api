@@ -50,7 +50,7 @@ namespace PicSocial.Server.Services.Implementations
             {
                 CommentId = comment.CommentId,
                 Content = comment.Content,
-                CreateDate = comment.UpdatedDate,
+                CreateDate = comment.CreatedDate,
                 UserName = currentUser.UserName,
                 Avatar = currentUser.AvatarUrl
             });

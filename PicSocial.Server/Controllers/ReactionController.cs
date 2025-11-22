@@ -14,12 +14,10 @@ namespace PicSocial.Server.Controllers
     public class ReactionController : ControllerBase
     {
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly ApplicationDbContext _context;
         private readonly IReactionService _reactionService;
-        public ReactionController(UserManager<ApplicationUser> userManager, ApplicationDbContext context, IReactionService reactionService)
+        public ReactionController(UserManager<ApplicationUser> userManager, IReactionService reactionService)
         {
             _userManager = userManager;
-            _context = context;
             _reactionService = reactionService;
         }
 
