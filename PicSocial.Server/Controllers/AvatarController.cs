@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PicSocial.Server.Models;
 using PicSocial.Server.Services;
+using PicSocial.Server.Services.Interfaces;
 
 namespace PicSocial.Server.Controllers
 {
@@ -13,12 +14,12 @@ namespace PicSocial.Server.Controllers
     public class AvatarController : ControllerBase
     {
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly GoogleCloudStorageService _googleCloudStorageService;
+        private readonly IAvatarService _avatarService;
 
-        public AvatarController(GoogleCloudStorageService googleCloudStorageService, UserManager<ApplicationUser> userManager)
+        public AvatarController(UserManager<ApplicationUser> userManager, IAvatarService avatarService)
         {
             _userManager = userManager;
-            _googleCloudStorageService = googleCloudStorageService;
+            _avatarService = avatarService;
         }
 
         // POST api/avatar
@@ -30,29 +31,8 @@ namespace PicSocial.Server.Controllers
             if (currentUser == null)
                 return Unauthorized();
 
-            //Kiểm tra file được tải lên
-            if (avatar == null)
-                return BadRequest("No file uploaded");
-
-            //Xóa và ghì đè avatar mới 
-            if (!string.IsNullOrEmpty(currentUser.AvatarUrl))
-            {
-                var oldAvatar = Path.GetFileName(currentUser.AvatarUrl);
-                await _googleCloudStorageService.DeleteFileAsync($"avatars/{oldAvatar}");
-            }
-
-            var objectName = $"avatars/{Guid.NewGuid()}{Path.GetExtension(avatar.FileName)}";
-            var fileUrl = await _googleCloudStorageService.UploadFileAsync(
-                avatar.OpenReadStream(),
-                objectName,
-                avatar.ContentType
-            );
-
-            currentUser.AvatarUrl = objectName;
-            currentUser.AvatarUrl = fileUrl;
-            await _userManager.UpdateAsync(currentUser);
-
-            return Ok(new { message = "upload completed" });
+            var result = await _avatarService.UploadAvatarAsync(currentUser.Id, avatar);
+            return StatusCode(result.StatusCode, new { message = result.Message});
         }
 
         // DELETE api/avatar
@@ -64,16 +44,8 @@ namespace PicSocial.Server.Controllers
             if (currentUser == null)
                 return Unauthorized();
 
-            if (string.IsNullOrEmpty(currentUser.AvatarUrl))
-                return BadRequest("No avatar here!!");
-
-            //Kiểm tra file
-            var objectName = currentUser.AvatarUrl.Split("/").Last();
-            await _googleCloudStorageService.DeleteFileAsync($"avatars/{objectName}");
-
-            currentUser.AvatarUrl = null; //thay vì null thì có thể set avatar về mặc định 
-            await _userManager.UpdateAsync(currentUser);
-            return Ok(new { message = "delete complete" });
+            var result = await _avatarService.DeleteAvatarAsync(currentUser.Id);
+            return StatusCode(result.StatusCode, new { message = result.Message});
         }
     }
 }

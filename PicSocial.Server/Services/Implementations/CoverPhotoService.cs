@@ -5,12 +5,12 @@ using PicSocial.Server.Shared;
 
 namespace PicSocial.Server.Services.Implementations
 {
-    public class CoverPhotoController : ICoverPhotoService
+    public class CoverPhotoService : ICoverPhotoService
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly GoogleCloudStorageService _googleCloudStorageService;
         
-        public CoverPhotoController(UserManager<ApplicationUser> userManager, GoogleCloudStorageService googleCloudStorageService)
+        public CoverPhotoService(UserManager<ApplicationUser> userManager, GoogleCloudStorageService googleCloudStorageService)
         {
             _userManager = userManager;
             _googleCloudStorageService = googleCloudStorageService;

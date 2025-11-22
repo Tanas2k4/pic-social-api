@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using PicSocial.Server.Controllers;
 using PicSocial.Server.Data;
 using PicSocial.Server.Models;
 using PicSocial.Server.Services;
@@ -47,6 +48,8 @@ builder.Services.AddScoped<IProfileService, ProfileService>();
 builder.Services.AddScoped<IReactionService, ReactionService>();
 builder.Services.AddScoped<IShareService, ShareService>();
 builder.Services.AddScoped<ICommentService, CommentService>();
+builder.Services.AddScoped<ICoverPhotoService, CoverPhotoService>();
+builder.Services.AddScoped<IAvatarService, AvatarService>();
 // Add Google Cloud Storage service
 builder.Services.AddSingleton<GoogleCloudStorageService>();
 // Swagger/OpenAPI
