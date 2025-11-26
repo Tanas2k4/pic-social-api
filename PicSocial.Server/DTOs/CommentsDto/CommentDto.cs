@@ -1,4 +1,4 @@
-namespace PicSocial.Server.DTOs
+namespace PicSocial.Server.DTOs.CommentsDto
 {
     public class CommentDto
     {

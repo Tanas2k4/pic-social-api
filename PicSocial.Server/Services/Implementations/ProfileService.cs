@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
-using PicSocial.Server.DTOs;
+using PicSocial.Server.DTOs.ProfilesDto;
 using PicSocial.Server.Models;
 using PicSocial.Server.Services.Interfaces;
 using PicSocial.Server.Shared;
@@ -17,15 +17,15 @@ namespace PicSocial.Server.Services.Implementations
             _service = service;
         }
         //Xem profile của user khác 
-        public async Task<Result<UserProfileDto>> GetProfileByIdAsync(string currentUserId, string targetUserId)
+        public async Task<Results<ProfileUserDto>> GetProfileByIdAsync(string currentUserId, string targetUserId)
         {
             var targetUser = await _userManager.FindByIdAsync(targetUserId);
             if (targetUser == null)
-                return Result<UserProfileDto>.NotFound("user not found");
+                return Results<ProfileUserDto>.NotFound("user not found");
 
             bool isFollowing = await _service.IsFollowingAsync(currentUserId, targetUserId);
 
-            var dto = new UserProfileDto
+            var dto = new ProfileUserDto
             {
                 UserName = targetUser.UserName!,
                 FirstName = targetUser.FirstName,
@@ -42,16 +42,16 @@ namespace PicSocial.Server.Services.Implementations
                 dto.Location = targetUser.Location;
             }
 
-            return Result<UserProfileDto>.Ok(dto);
+            return Results<ProfileUserDto>.Ok(dto);
         }
 
         //Xem profile của chính mình
-        public async Task<Result<UserProfileDto>> GetMyProfileAsync(string currentUserId)
+        public async Task<Results<ProfileUserDto>> GetMyProfileAsync(string currentUserId)
         {
             var currentUser = await _userManager.FindByIdAsync(currentUserId);
             if (currentUser == null)
-                return Result<UserProfileDto>.NotFound("User not found");
-            var dto = new UserProfileDto
+                return Results<ProfileUserDto>.NotFound("User not found");
+            var dto = new ProfileUserDto
             {
                 UserName = currentUser.UserName!,
                 FirstName = currentUser.FirstName,
@@ -62,15 +62,15 @@ namespace PicSocial.Server.Services.Implementations
                 FollowingCount = currentUser.FollowingCount,
                 Location = currentUser.Location
             };
-            return Result<UserProfileDto>.Ok(dto);
+            return Results<ProfileUserDto>.Ok(dto);
         }
 
         //Cập nhật profile của chính mình
-        public async Task<Result<UserProfileDto>> UpdateMyProfileAsync(string currentUserId, UpdateProfileDto updateProfileDto)
+        public async Task<Results<ProfileUserDto>> UpdateMyProfileAsync(string currentUserId, ProfileUpdateDto updateProfileDto)
         {
             var currentUser = await _userManager.FindByIdAsync(currentUserId);
             if (currentUser == null)
-                return Result<UserProfileDto>.NotFound();
+                return Results<ProfileUserDto>.NotFound();
             
             if (!string.IsNullOrWhiteSpace(updateProfileDto.FirstName))
                 currentUser.FirstName = updateProfileDto.FirstName;
@@ -82,7 +82,7 @@ namespace PicSocial.Server.Services.Implementations
                 currentUser.Location = updateProfileDto.Location;
             var result = await _userManager.UpdateAsync(currentUser);
             
-            return Result<UserProfileDto>.Ok(new UserProfileDto
+            return Results<ProfileUserDto>.Ok(new ProfileUserDto
             {
                 UserName = currentUser.UserName!,
                 FirstName = currentUser.FirstName,

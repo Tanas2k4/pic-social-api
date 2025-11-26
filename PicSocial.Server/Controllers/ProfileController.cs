@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using PicSocial.Server.DTOs;
+using PicSocial.Server.DTOs.ProfilesDto;
 using PicSocial.Server.Models;
 using PicSocial.Server.Services.Interfaces;
 namespace PicSocial.Server.Controllers
@@ -46,7 +46,7 @@ namespace PicSocial.Server.Controllers
         
         // PUT api/profile
         [HttpPut]
-        public async Task<IActionResult> UpdateMyProfile([FromBody] UpdateProfileDto updateProfileDto)
+        public async Task<IActionResult> UpdateMyProfile([FromBody] ProfileUpdateDto updateProfileDto)
         {
             var currentUser = await _userManager.GetUserAsync(User);
             if (currentUser == null)

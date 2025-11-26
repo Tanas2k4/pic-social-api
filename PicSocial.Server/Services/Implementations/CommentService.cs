@@ -1,9 +1,6 @@
-﻿using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ActionConstraints;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using PicSocial.Server.DTOs;
+using PicSocial.Server.DTOs.CommentsDto;
 using PicSocial.Server.Models;
 using PicSocial.Server.Models.Entities;
 using PicSocial.Server.Services.Interfaces;
@@ -21,16 +18,16 @@ namespace PicSocial.Server.Services.Implementations
         }
 
         //post comment
-        public async Task<Result<CommentCreateDto>> CommentPostAsync(Guid postId, string userId, string content, Guid? parentCommentId = null)
+        public async Task<Results<CommentCreateDto>> CommentPostAsync(Guid postId, string userId, string content, Guid? parentCommentId = null)
         {
             var currentUser = await _userManager.FindByIdAsync(userId);
             if (currentUser == null)
-                return Result<CommentCreateDto>.Unauthorized("user not found");
+                return Results<CommentCreateDto>.Unauthorized("user not found");
 
             var post = await _context.Posts
                 .FirstOrDefaultAsync(p => p.PostId == postId);
             if (post == null)
-                return Result<CommentCreateDto>.NotFound("post not found");
+                return Results<CommentCreateDto>.NotFound("post not found");
 
             var comment = new Comment
             {
@@ -46,7 +43,7 @@ namespace PicSocial.Server.Services.Implementations
             post.CommentCount++;
             await _context.SaveChangesAsync();
 
-            return Result<CommentCreateDto>.Ok(new CommentCreateDto
+            return Results<CommentCreateDto>.Ok(new CommentCreateDto
             {
                 CommentId = comment.CommentId,
                 Content = comment.Content,
@@ -97,22 +94,22 @@ namespace PicSocial.Server.Services.Implementations
 
 
         //update comment
-        public async Task<Result<CommentUpdateDto>> UpdateCommentAsync(Guid commentId, string currentUserId, string newContent)
+        public async Task<Results<CommentUpdateDto>> UpdateCommentAsync(Guid commentId, string currentUserId, string newContent)
         {
             var currentUser = await _userManager.FindByIdAsync(currentUserId);
             if (currentUser == null)
-                return Result<CommentUpdateDto>.Unauthorized("User not found");
+                return Results<CommentUpdateDto>.Unauthorized("User not found");
             var comment = await _context.Comments
                 .Include(c => c.ChildComments)
                 .FirstOrDefaultAsync(c => c.CommentId == commentId && c.UserId == currentUserId);
             if (comment == null || comment.ParentCommentId != null)
-                return Result<CommentUpdateDto>.NotFound("Comment not found or you do't have permission");
+                return Results<CommentUpdateDto>.NotFound("Comment not found or you do't have permission");
 
             comment.Content = newContent;
             comment.UpdatedDate = DateTimeOffset.Now;
 
             await _context.SaveChangesAsync();
-            return Result<CommentUpdateDto>.Ok(new CommentUpdateDto
+            return Results<CommentUpdateDto>.Ok(new CommentUpdateDto
             {
                 CommentId = comment.CommentId,
                 Content = comment.Content,
@@ -123,7 +120,7 @@ namespace PicSocial.Server.Services.Implementations
         }
 
         //Get comment by postId
-        public async Task<Result<List<CommentPostDto>>> GetCommentsByPostIdAsync(Guid postId)
+        public async Task<Results<List<CommentPostDto>>> GetCommentsByPostIdAsync(Guid postId)
         {
             var comments = await _context.Comments
                 .Where(c => c.PostId == postId && c.ParentCommentId == null)
@@ -149,7 +146,7 @@ namespace PicSocial.Server.Services.Implementations
                     Avatar = cc.User.AvatarUrl
                 }).ToList()
             }).ToList();
-            return Result<List<CommentPostDto>>.Ok(dto);
+            return Results<List<CommentPostDto>>.Ok(dto);
         }
     }
 }

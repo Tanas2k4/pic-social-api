@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using PicSocial.Server.DTOs;
+using PicSocial.Server.DTOs.FollowsDto;
 using PicSocial.Server.Shared;
 namespace PicSocial.Server.Services.Interfaces
 {

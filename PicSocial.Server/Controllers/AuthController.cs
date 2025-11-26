@@ -1,12 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
 using PicSocial.Server.Models;
-using PicSocial.Server.DTOs;
 using System.CodeDom.Compiler;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using PicSocial.Server.DTOs.AuthDto;
 
 namespace PicSocial.Server.Controllers
 {

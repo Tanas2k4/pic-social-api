@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using PicSocial.Server.Controllers;
 using PicSocial.Server.Data;
 using PicSocial.Server.Models;
 using PicSocial.Server.Services;
@@ -39,7 +38,7 @@ builder.Services.AddAuthentication(options =>
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Key"]))
     };
 });
-// Add services to the container.
+// Add services to the container
 builder.Services.AddControllers();
 builder.Services.AddScoped<IFollowService, FollowService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
@@ -99,5 +98,5 @@ using (var scope = app.Services.CreateScope())
     var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
     await SeedData.InitializeAsync(userManager, roleManager);
 }
-
+// run app
 app.Run();

@@ -1,6 +1,6 @@
-namespace PicSocial.Server.DTOs
+namespace PicSocial.Server.DTOs.ProfilesDto
 {
-    public class UserProfileDto
+    public class ProfileUserDto
     {
         public string UserName { get; set; } = null!;
         public string? FirstName { get; set; }

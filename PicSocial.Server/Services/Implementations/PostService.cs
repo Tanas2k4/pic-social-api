@@ -23,15 +23,15 @@ namespace PicSocial.Server.Services.Implementations
         }
 
         //post a post
-        public async Task<Result<PostResponseDto>> UploadPhotoAsync(string currentUserId, string title, List<IFormFile> files)
+        public async Task<Results<PostResponseDto>> UploadPhotoAsync(string currentUserId, string title, List<IFormFile> files)
         {
             //kiểm tra files được tải lên
             if (files == null || files.Count == 0)
-                return Result<PostResponseDto>.Bad("No files uploaded.");
+                return Results<PostResponseDto>.Bad("No files uploaded.");
 
             var currentUser = await _userManager.FindByIdAsync(currentUserId);
             if (currentUser == null)
-                return Result<PostResponseDto>.Unauthorized("User not found");
+                return Results<PostResponseDto>.Unauthorized("User not found");
 
             // Create new post
             var post = new Post
@@ -79,7 +79,7 @@ namespace PicSocial.Server.Services.Implementations
                 UpdatedDate = post.UpdatedDate
             };
 
-            return Result<PostResponseDto>.Ok(dto);
+            return Results<PostResponseDto>.Ok(dto);
         }
 
         //delete post
@@ -114,17 +114,17 @@ namespace PicSocial.Server.Services.Implementations
         }
 
         //update post 
-        public async Task<Result<PostResponseDto>> UpdatePostAsync(Guid postId, string currentUserId, string newTitle)
+        public async Task<Results<PostResponseDto>> UpdatePostAsync(Guid postId, string currentUserId, string newTitle)
         {
             var currentUser = await _userManager.FindByIdAsync(currentUserId);
             if (currentUser == null)
-                return Result<PostResponseDto>.Unauthorized("User not found");
+                return Results<PostResponseDto>.Unauthorized("User not found");
             
             var post = await _context.Posts
                 .Include(p => p.Photos)
                 .FirstOrDefaultAsync(p => p.PostId == postId && p.UserId == currentUserId);
             if (post == null)
-                return Result<PostResponseDto>.NotFound("Post not found or you do not have permission to update this post.");
+                return Results<PostResponseDto>.NotFound("Post not found or you do not have permission to update this post.");
             
             post.Title = newTitle;
             post.UpdatedDate = DateTimeOffset.Now;
@@ -146,11 +146,11 @@ namespace PicSocial.Server.Services.Implementations
                 UpdatedDate = post.UpdatedDate
             };
 
-            return Result<PostResponseDto>.Ok(dto," updated succesfully");
+            return Results<PostResponseDto>.Ok(dto," updated succesfully");
         }
 
         //get all post of a user 
-        public async Task<Result<List<PostResponseDto>>> GetPostsByUserAsync(string userId)
+        public async Task<Results<List<PostResponseDto>>> GetPostsByUserAsync(string userId)
         {
             var posts = await _context.Posts
                 .Where(p => p.UserId == userId)
@@ -159,7 +159,7 @@ namespace PicSocial.Server.Services.Implementations
                 .ToListAsync();
 
             if (posts == null || posts.Count == 0)
-                return Result<List<PostResponseDto>>.NotFound("No posts found for the specified user.");
+                return Results<List<PostResponseDto>>.NotFound("No posts found for the specified user.");
             var postDtos = posts.Select(post => new PostResponseDto
             {
                 PostId = post.PostId,
@@ -174,18 +174,18 @@ namespace PicSocial.Server.Services.Implementations
                 }).ToList(),
                 UpdatedDate = post.UpdatedDate
             }).ToList();
-            return Result<List<PostResponseDto>>.Ok(postDtos);
+            return Results<List<PostResponseDto>>.Ok(postDtos);
         }
 
         //view a post by postId
-        public async Task<Result<PostResponseDto>> GetPostByIdAsync(Guid postId)
+        public async Task<Results<PostResponseDto>> GetPostByIdAsync(Guid postId)
         {
             var post = await _context.Posts
                 .Where(p => p.PostId == postId)
                 .Include(p => p.Photos)
                 .FirstOrDefaultAsync();
             if (post == null)
-                return Result<PostResponseDto>.NotFound("Post not found.");
+                return Results<PostResponseDto>.NotFound("Post not found.");
             var dto = new PostResponseDto
             {
                 PostId = post.PostId,
@@ -200,7 +200,7 @@ namespace PicSocial.Server.Services.Implementations
                 }).ToList(),
                 UpdatedDate = post.UpdatedDate
             };
-            return Result<PostResponseDto>.Ok(dto);
+            return Results<PostResponseDto>.Ok(dto);
         }
     }
 }

@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using PicSocial.Server.Models.Entities;
 
@@ -34,17 +33,14 @@ namespace PicSocial.Server.Models
             // Configure Follows
             builder.Entity<Follow>()
                 .HasKey(f => f.FollowId);
-
             builder.Entity<Follow>()
                 .HasIndex(f => new { f.FollowerId, f.FollowedId })
                 .IsUnique();
-
             builder.Entity<Follow>()
                 .HasOne(f => f.Follower)
                 .WithMany(u => u.FollowerFollows)
                 .HasForeignKey(f => f.FollowerId)
                 .OnDelete(DeleteBehavior.ClientSetNull);
-
             builder.Entity<Follow>()
                 .HasOne(f => f.Followed)
                 .WithMany(u => u.FollowedFollows)
@@ -57,7 +53,6 @@ namespace PicSocial.Server.Models
                 .WithMany(p => p.Photos)
                 .HasForeignKey(p => p.PostId)
                 .OnDelete(DeleteBehavior.Cascade);
-
             builder.Entity<Photo>()
                 .HasOne(p => p.User)
                 .WithMany(u => u.Photos)
@@ -67,7 +62,6 @@ namespace PicSocial.Server.Models
             // Configure PhotoVersions
             builder.Entity<PhotoVersion>()
                 .HasKey(pv => pv.PhotoVersionId);
-
             builder.Entity<PhotoVersion>()
                 .HasOne(pv => pv.Photo)
                 .WithMany(p => p.Versions)
@@ -77,30 +71,24 @@ namespace PicSocial.Server.Models
             // Configure PhotoMetadata
             builder.Entity<PhotoMetadata>()
                 .HasKey(pm => pm.PhotoMetadataId);
-
             builder.Entity<PhotoMetadata>()
                 .HasOne(pm => pm.Photo)
                 .WithOne(p => p.Metadata)
                 .HasForeignKey<PhotoMetadata>(pm => pm.PhotoId)
                 .OnDelete(DeleteBehavior.Cascade);
-
             builder.Entity<PhotoMetadata>()
                 .Property(pm => pm.Aperture)
                 .HasPrecision(4, 2);
-
             builder.Entity<PhotoMetadata>()
                 .HasIndex(pm => pm.Lens);
-
             builder.Entity<PhotoMetadata>()
                 .HasIndex(pm => pm.Aperture);
-
             builder.Entity<PhotoMetadata>()
                 .HasIndex(pm => pm.ISO);
 
             // Configure Licenses
             builder.Entity<License>()
                 .HasKey(l => l.LicenseId);
-
             builder.Entity<License>()
                 .HasIndex(l => l.Name)
                 .IsUnique();
@@ -108,13 +96,11 @@ namespace PicSocial.Server.Models
             // Configure PhotoLicenses
             builder.Entity<PhotoLicense>()
                 .HasKey(pl => pl.PhotoLicenseId);
-
             builder.Entity<PhotoLicense>()
                 .HasOne(pl => pl.Photo)
                 .WithOne(p => p.License)
                 .HasForeignKey<PhotoLicense>(pl => pl.PhotoId)
                 .OnDelete(DeleteBehavior.Cascade);
-
             builder.Entity<PhotoLicense>()
                 .HasOne(pl => pl.License)
                 .WithMany(l => l.PhotoLicenses)
@@ -132,7 +118,7 @@ namespace PicSocial.Server.Models
                 .HasOne<ApplicationUser>()
                 .WithMany(u => u.Albums)
                 .HasForeignKey(a => a.UserId)
-                .OnDelete(DeleteBehavior.ClientSetNull);    // QUAN TRỌNG: không dùng Cascade ở đây
+                .OnDelete(DeleteBehavior.ClientSetNull); 
 
             // Configure AlbumPhotos
             builder.Entity<AlbumPhoto>()
@@ -153,7 +139,6 @@ namespace PicSocial.Server.Models
             // Configure Tags
             builder.Entity<Tag>()
                 .HasKey(t => t.TagId);
-
             builder.Entity<Tag>()
                 .HasIndex(t => t.Name)
                 .IsUnique();
@@ -161,13 +146,11 @@ namespace PicSocial.Server.Models
             // Configure PhotoTags
             builder.Entity<PhotoTag>()
                 .HasKey(pt => new { pt.PhotoId, pt.TagId });
-
             builder.Entity<PhotoTag>()
                 .HasOne(pt => pt.Photo)
                 .WithMany(p => p.PhotoTags)
                 .HasForeignKey(pt => pt.PhotoId)
                 .OnDelete(DeleteBehavior.Cascade);
-
             builder.Entity<PhotoTag>()
                 .HasOne(pt => pt.Tag)
                 .WithMany(t => t.PhotoTags)
@@ -177,22 +160,18 @@ namespace PicSocial.Server.Models
             // Configure Comments
             builder.Entity<Comment>()
                 .HasKey(c => c.CommentId);
-
             builder.Entity<Comment>()
                 .HasIndex(c => c.PostId);
-
             builder.Entity<Comment>()
                 .HasOne(c => c.Post)
                 .WithMany(p => p.Comments)
                 .HasForeignKey(c => c.PostId)
                 .OnDelete(DeleteBehavior.Cascade);
-
             builder.Entity<Comment>()
                 .HasOne(c => c.User)
                 .WithMany()
                 .HasForeignKey(c => c.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
-
             builder.Entity<Comment>()
                 .HasOne(c => c.ParentComment)
                 .WithMany(c => c.ChildComments)
@@ -202,17 +181,14 @@ namespace PicSocial.Server.Models
             // Configure Reactions (Like)
             builder.Entity<Reaction>()
                 .HasKey(r => r.ReactionId);
-
             builder.Entity<Reaction>()
                 .HasIndex(r => new { r.PostId, r.UserId })
                 .IsUnique();
-
             builder.Entity<Reaction>()
                 .HasOne(r => r.Post)
                 .WithMany(p => p.Likes)
                 .HasForeignKey(r => r.PostId)
                 .OnDelete(DeleteBehavior.Cascade);
-
             builder.Entity<Reaction>()
                 .HasOne(r => r.User)
                 .WithMany()
@@ -222,16 +198,13 @@ namespace PicSocial.Server.Models
             // Configure Shares
             builder.Entity<Share>()
                 .HasKey(s => s.ShareId);
-
             builder.Entity<Share>()
                 .HasIndex(s => s.PostId);
-
             builder.Entity<Share>()
                 .HasOne(s => s.Post)
                 .WithMany(p => p.Shares)
                 .HasForeignKey(s => s.PostId)
                 .OnDelete(DeleteBehavior.Cascade);
-
             builder.Entity<Share>()
                 .HasOne(s => s.User)
                 .WithMany()
@@ -241,19 +214,15 @@ namespace PicSocial.Server.Models
             // Configure Reports
             builder.Entity<Report>()
                 .HasKey(r => r.ReportId);
-
             builder.Entity<Report>()
                 .HasIndex(r => r.Status);
-
             builder.Entity<Report>()
                 .HasIndex(r => r.PostId);
-
             builder.Entity<Report>()
                 .HasOne(r => r.Post)
                 .WithMany(p => p.Reports)
                 .HasForeignKey(r => r.PostId)
                 .OnDelete(DeleteBehavior.Cascade);
-
             builder.Entity<Report>()
                 .HasOne(r => r.User)
                 .WithMany()
@@ -263,7 +232,6 @@ namespace PicSocial.Server.Models
             // Configure Posts
             builder.Entity<Post>()
                 .HasKey(p => p.PostId);
-
             builder.Entity<Post>()
                 .HasOne(p => p.User)
                 .WithMany(u => u.Posts)
