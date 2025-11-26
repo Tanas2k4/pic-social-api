@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using PicSocial.Server.Shared;
+﻿using PicSocial.Server.Shared;
 
 namespace PicSocial.Server.Services.Interfaces
 {

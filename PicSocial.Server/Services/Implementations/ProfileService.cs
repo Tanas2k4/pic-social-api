@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using PicSocial.Server.DTOs.ProfilesDto;
 using PicSocial.Server.Models;
 using PicSocial.Server.Services.Interfaces;

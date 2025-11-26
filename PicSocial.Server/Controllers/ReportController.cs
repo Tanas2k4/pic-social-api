@@ -1,11 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.VisualBasic;
 using PicSocial.Server.DTOs.ReportsDto;
 using PicSocial.Server.Models;
-using PicSocial.Server.Models.Entities;
 using PicSocial.Server.Services.Interfaces;
 
 namespace PicSocial.Server.Controllers

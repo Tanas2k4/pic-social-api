@@ -1,6 +1,5 @@
 ﻿using PicSocial.Server.DTOs.ProfilesDto;
 using PicSocial.Server.Shared;
-using System.Threading.Tasks;
 
 namespace PicSocial.Server.Services.Interfaces
 {

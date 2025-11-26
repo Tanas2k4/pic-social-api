@@ -2,7 +2,6 @@
 using PicSocial.Server.Models.Entities;
 using PicSocial.Server.Services.Interfaces;
 using PicSocial.Server.Shared;
-using System.Security.Cryptography.X509Certificates;
 
 namespace PicSocial.Server.Services.Implementations
 {

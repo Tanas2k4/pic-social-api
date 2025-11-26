@@ -40,6 +40,7 @@ builder.Services.AddAuthentication(options =>
 });
 // Add services to the container
 builder.Services.AddControllers();
+builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IFollowService, FollowService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddScoped<IReportService, ReportService>();
