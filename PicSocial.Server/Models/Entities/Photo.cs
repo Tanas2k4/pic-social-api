@@ -21,6 +21,7 @@ namespace PicSocial.Server.Models.Entities
         public ApplicationUser User { get; set; } = null!;
         public PhotoMetadata? Metadata { get; set; }
         public PhotoLicense? License { get; set; }
+        public PhotoXmpMetadata? XmpMetadata { get; set; }
         public ICollection<PhotoVersion> Versions { get; set; } = new List<PhotoVersion>();
         public ICollection<AlbumPhoto> AlbumPhotos { get; set; } = new List<AlbumPhoto>();
         public ICollection<PhotoTag> PhotoTags { get; set; } = new List<PhotoTag>();

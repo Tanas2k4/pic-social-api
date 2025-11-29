@@ -21,6 +21,7 @@ namespace PicSocial.Server.Models
         public DbSet<AlbumPhoto> AlbumPhotos { get; set; }
         public DbSet<Tag> Tags { get; set; } = null!;
         public DbSet<PhotoTag> PhotoTags { get; set; }
+        public DbSet<PhotoXmpMetadata> PhotoXmpMetadatas { get; set; }
         public DbSet<Comment> Comments { get; set; }
         public DbSet<Reaction> Reactions { get; set; }
         public DbSet<Share> Shares { get; set; }
@@ -85,6 +86,16 @@ namespace PicSocial.Server.Models
                 .HasIndex(pm => pm.Aperture);
             builder.Entity<PhotoMetadata>()
                 .HasIndex(pm => pm.ISO);
+
+            // Configure PhotoXmpMetadata
+            builder.Entity<PhotoXmpMetadata>()
+                .HasKey(x => x.PhotoXmpMetadataId);
+
+            builder.Entity<PhotoXmpMetadata>()
+                .HasOne(x => x.Photo)
+                .WithOne(p => p.XmpMetadata)
+                .HasForeignKey<PhotoXmpMetadata>(x => x.PhotoId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             // Configure Licenses
             builder.Entity<License>()
