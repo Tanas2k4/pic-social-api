@@ -14,12 +14,10 @@ namespace PicSocial.Server.Controllers
     public class FollowController : ControllerBase
     {
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly ApplicationDbContext _context;
         private readonly IFollowService _service;
-        public FollowController(UserManager<ApplicationUser> userManager, ApplicationDbContext context, IFollowService service)
+        public FollowController(UserManager<ApplicationUser> userManager, IFollowService service)
         {
             _userManager = userManager;
-            _context = context;
             _service = service;
         }
 

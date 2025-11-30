@@ -12,6 +12,9 @@ namespace PicSocial.Server.Models.Entities
         public int ReactionCount { get; set; } = 0;
         public int CommentCount { get; set; } = 0;
         public int ShareCount { get; set; } = 0;
+
+        public Guid? LicenseId { get; set; } 
+        public License? License { get; set; }
         // Navigation properties
         public ApplicationUser User { get; set; } = null!;
         public ICollection<Photo> Photos { get; set; } = new List<Photo>();

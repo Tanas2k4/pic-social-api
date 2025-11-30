@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 namespace PicSocial.Server.Models.Entities
 {
     public class License

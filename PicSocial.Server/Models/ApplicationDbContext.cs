@@ -248,6 +248,11 @@ namespace PicSocial.Server.Models
                 .WithMany(u => u.Posts)
                 .HasForeignKey(p => p.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+            builder.Entity<Post>()
+                .HasOne<License>()                     
+                .WithMany()                            
+                .HasForeignKey(p => p.LicenseId)      
+                .OnDelete(DeleteBehavior.SetNull);
         }
     }
 }

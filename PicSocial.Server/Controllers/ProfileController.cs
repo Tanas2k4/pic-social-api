@@ -45,15 +45,13 @@ namespace PicSocial.Server.Controllers
         }
         
         // PUT api/profile
-        [HttpPut]
+        [HttpPatch]
         public async Task<IActionResult> UpdateMyProfile([FromBody] ProfileUpdateDto updateProfileDto)
         {
             var currentUser = await _userManager.GetUserAsync(User);
             if (currentUser == null)
                 return Unauthorized();
 
-            //Cập nhật thông tin người dùng
-            //Cập nhật theo từng trường nếu nó không null hoặc rỗng
             var result = await _profileService.UpdateMyProfileAsync(currentUser.Id, updateProfileDto);
 
             return StatusCode(result.StatusCode, result.Data);

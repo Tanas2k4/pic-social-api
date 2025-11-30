@@ -2,7 +2,7 @@ using Google.Cloud.Storage.V1;
 
 namespace PicSocial.Server.Services
 {
-    public class GoogleCloudStorageService
+    public class GoogleCloudStorageService 
     {
         private readonly StorageClient _storageClient;
         private readonly string _bucketName;

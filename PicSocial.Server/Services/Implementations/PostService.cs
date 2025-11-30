@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Azure.Core;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using PicSocial.Server.DTOs.PostsDto;
 using PicSocial.Server.Models;
 using PicSocial.Server.Models.Entities;
 using PicSocial.Server.Services.Interfaces;
 using PicSocial.Server.Shared;
+using System.ComponentModel;
 
 namespace PicSocial.Server.Services.Implementations
 {
@@ -22,7 +24,7 @@ namespace PicSocial.Server.Services.Implementations
         }
 
         //post a post
-        public async Task<Results<PostResponseDto>> UploadPhotoAsync(string currentUserId, string title, List<IFormFile> files)
+        public async Task<Results<PostResponseDto>> UploadPhotoAsync(string currentUserId, string? title, List<IFormFile> files, Guid? licenseId)
         {
             //kiểm tra files được tải lên
             if (files == null || files.Count == 0)
@@ -32,13 +34,30 @@ namespace PicSocial.Server.Services.Implementations
             if (currentUser == null)
                 return Results<PostResponseDto>.Unauthorized("User not found");
 
+            //(Optional) tùy chọn 1 value trong License
+            var license = licenseId.HasValue ? await _context.Licenses.FindAsync(licenseId.Value) : null;
+            if (licenseId.HasValue && license == null)
+                return Results<PostResponseDto>.Bad("Licences not found");
+            // Nếu client không gửi license → lấy mặc định "All Rights Reserved"
+            if (!licenseId.HasValue)
+            {
+                license = await _context.Licenses
+                    .FirstOrDefaultAsync(x => x.Name == "Royalty-Free");
+
+                if (license == null)
+                    return Results<PostResponseDto>.Bad("Default license 'Royalty-Free' not found in database.");
+
+                licenseId = license.LicenseId; // GÁN vào licenseId của POST
+            }
+        
             // Create new post
             var post = new Post
             {
                 UserId = currentUser.Id,
                 Title = title,
+                LicenseId = licenseId,
                 CreatedDate = DateTimeOffset.Now
-            };
+            }; 
 
             // Upload each file to Google Cloud Storage and save to database
             foreach (var file in files)
@@ -50,7 +69,7 @@ namespace PicSocial.Server.Services.Implementations
                     objectName,
                     file.ContentType
                 );
-
+                
                 post.Photos.Add(new Photo
                 {
                     UserId = currentUser.Id,
@@ -63,12 +82,14 @@ namespace PicSocial.Server.Services.Implementations
             _context.Posts.Add(post);
             await _context.SaveChangesAsync();
 
+    
             var dto = new PostResponseDto
             {
                 PostId = post.PostId,
                 UserId = post.UserId,
                 Title = post.Title,
                 CreatedDate = post.CreatedDate,
+                LicenseName = license?.Name,
                 Photos = post.Photos.Select(p => new PostPhotoDto
                 {
                     PhotoId = p.PhotoId,
@@ -113,19 +134,29 @@ namespace PicSocial.Server.Services.Implementations
         }
 
         //update post 
-        public async Task<Results<PostResponseDto>> UpdatePostAsync(Guid postId, string currentUserId, string newTitle)
+        public async Task<Results<PostResponseDto>> UpdatePostAsync(Guid postId, string currentUserId, string? newTitle, Guid? licenseId)
         {
             var currentUser = await _userManager.FindByIdAsync(currentUserId);
             if (currentUser == null)
-                return Results<PostResponseDto>.Unauthorized("User not found");
-            
+                return Results<PostResponseDto>.Unauthorized("User not found");        
+
             var post = await _context.Posts
                 .Include(p => p.Photos)
+                .Include(p => p.License)
                 .FirstOrDefaultAsync(p => p.PostId == postId && p.UserId == currentUserId);
             if (post == null)
                 return Results<PostResponseDto>.NotFound("Post not found or you do not have permission to update this post.");
             
-            post.Title = newTitle;
+            if (!string.IsNullOrWhiteSpace(newTitle))
+                post.Title = newTitle;
+            if (licenseId.HasValue)
+            {
+                var license = await _context.Licenses.FindAsync(licenseId.Value);
+                if (license == null)
+                    return Results<PostResponseDto>.Bad("License not found");
+                post.LicenseId = license.LicenseId;
+                post.License = license;
+            }
             post.UpdatedDate = DateTimeOffset.Now;
 
             await _context.SaveChangesAsync();
@@ -135,6 +166,7 @@ namespace PicSocial.Server.Services.Implementations
                 PostId = post.PostId,
                 UserId = post.UserId,
                 Title = post.Title,
+                LicenseName = post.License?.Name,
                 CreatedDate = post.CreatedDate,
                 Photos = post.Photos.Select(p => new PostPhotoDto
                 {
@@ -154,17 +186,19 @@ namespace PicSocial.Server.Services.Implementations
             var posts = await _context.Posts
                 .Where(p => p.UserId == userId)
                 .Include(p => p.Photos)
+                .Include(p => p.License)
                 .OrderByDescending(p => p.CreatedDate)
                 .ToListAsync();
-
             if (posts == null || posts.Count == 0)
                 return Results<List<PostResponseDto>>.NotFound("No posts found for the specified user.");
+
             var postDtos = posts.Select(post => new PostResponseDto
             {
                 PostId = post.PostId,
                 UserId = post.UserId,
                 Title = post.Title,
                 CreatedDate = post.CreatedDate,
+                LicenseName = post.License?.Name,
                 Photos = post.Photos.Select(p => new PostPhotoDto
                 {
                     PhotoId = p.PhotoId,
@@ -182,6 +216,7 @@ namespace PicSocial.Server.Services.Implementations
             var post = await _context.Posts
                 .Where(p => p.PostId == postId)
                 .Include(p => p.Photos)
+                .Include(p => p.License)
                 .FirstOrDefaultAsync();
             if (post == null)
                 return Results<PostResponseDto>.NotFound("Post not found.");
@@ -190,6 +225,7 @@ namespace PicSocial.Server.Services.Implementations
                 PostId = post.PostId,
                 UserId = post.UserId,
                 Title = post.Title,
+                LicenseName = post.License?.Name,
                 CreatedDate = post.CreatedDate,
                 Photos = post.Photos.Select(p => new PostPhotoDto
                 {
@@ -201,5 +237,7 @@ namespace PicSocial.Server.Services.Implementations
             };
             return Results<PostResponseDto>.Ok(dto);
         }
+
+        //view photo detail in a post
     }
 }

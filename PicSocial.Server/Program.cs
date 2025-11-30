@@ -9,6 +9,7 @@ using PicSocial.Server.Services;
 using PicSocial.Server.Services.Implementations;
 using PicSocial.Server.Services.Interfaces;
 using System.Text;
+
 var builder = WebApplication.CreateBuilder(args);
 //Add DbContext     
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -51,6 +52,7 @@ builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddScoped<ICoverPhotoService, CoverPhotoService>();
 builder.Services.AddScoped<IAvatarService, AvatarService>();
 builder.Services.AddScoped<IPostService, PostService>();
+builder.Services.AddScoped<ILicenseService, LicenseService>();
 // Add Google Cloud Storage service
 builder.Services.AddSingleton<GoogleCloudStorageService>();
 // Swagger/OpenAPI

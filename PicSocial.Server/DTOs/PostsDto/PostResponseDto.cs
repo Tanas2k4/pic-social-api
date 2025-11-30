@@ -1,4 +1,6 @@
-﻿namespace PicSocial.Server.DTOs.PostsDto
+﻿using PicSocial.Server.Models.Entities;
+
+namespace PicSocial.Server.DTOs.PostsDto
 {
     public class PostResponseDto
     {
@@ -7,6 +9,8 @@
         public string? Title { get; set; } 
         public DateTimeOffset CreatedDate { get; set; }
         public DateTimeOffset? UpdatedDate { get; set; }
+        public string? LicenseName { get; set; }
+
         public List<PostPhotoDto> Photos { get; set; } = new();
     }
 }

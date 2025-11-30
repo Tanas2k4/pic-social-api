@@ -22,13 +22,13 @@ namespace PicSocial.Server.Controllers
 
         //POST api/post
         [HttpPost]
-        public async Task<IActionResult> UploadPhoto([FromForm] string title, [FromForm] List<IFormFile> files)
+        public async Task<IActionResult> UploadPhoto([FromForm] string title, [FromForm] List<IFormFile> files, [FromForm] Guid? licenseId)
         {       
             var currentUser = await _userManager.GetUserAsync(User);
             if (currentUser == null)
                 return Unauthorized();
             
-            var result = await _postService.UploadPhotoAsync(currentUser.Id, title, files);
+            var result = await _postService.UploadPhotoAsync(currentUser.Id, title, files, licenseId);
             return StatusCode(result.StatusCode, result.Data);
         }
 
@@ -45,14 +45,14 @@ namespace PicSocial.Server.Controllers
         }
 
         //PUT api/post/update/{postId}
-        [HttpPut("{postId}")]
-        public async Task<IActionResult> UpdatePost(Guid postId, [FromBody] PostUpdateDto updatePostDto)
+        [HttpPatch("{postId}")]
+        public async Task<IActionResult> UpdatePost(Guid postId, [FromForm] PostUpdateDto updatePostDto)
         {
             var currentUser = await _userManager.GetUserAsync(User);
             if (currentUser == null)
                 return Unauthorized();
 
-            var result = await _postService.UpdatePostAsync(postId, currentUser.Id, updatePostDto.Title);
+            var result = await _postService.UpdatePostAsync(postId, currentUser.Id, updatePostDto.Title, updatePostDto.LicenseId);
             return StatusCode(result.StatusCode, result.Data);
         }
 
