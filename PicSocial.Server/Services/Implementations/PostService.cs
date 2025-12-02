@@ -1,6 +1,6 @@
-﻿using Azure.Core;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
 using PicSocial.Server.DTOs.PostsDto;
 using PicSocial.Server.Models;
 using PicSocial.Server.Models.Entities;
@@ -75,7 +75,7 @@ namespace PicSocial.Server.Services.Implementations
                     UserId = currentUser.Id,
                     OriginalFileUrl = fileUrl,
                     CreatedDate = DateTimeOffset.Now,
-                    IsPublic = true
+                    IsPublic = true                   
                 });
             }
 
@@ -199,7 +199,9 @@ namespace PicSocial.Server.Services.Implementations
                 Title = post.Title,
                 CreatedDate = post.CreatedDate,
                 LicenseName = post.License?.Name,
-                Photos = post.Photos.Select(p => new PostPhotoDto
+                Photos = post.Photos
+                .Where(p => p.IsPublic)
+                .Select(p => new PostPhotoDto
                 {
                     PhotoId = p.PhotoId,
                     OriginalFileUrl = p.OriginalFileUrl,
@@ -209,7 +211,7 @@ namespace PicSocial.Server.Services.Implementations
             }).ToList();
             return Results<List<PostResponseDto>>.Ok(postDtos);
         }
-
+  
         //view a post by postId
         public async Task<Results<PostResponseDto>> GetPostByIdAsync(Guid postId)
         {
@@ -220,6 +222,15 @@ namespace PicSocial.Server.Services.Implementations
                 .FirstOrDefaultAsync();
             if (post == null)
                 return Results<PostResponseDto>.NotFound("Post not found.");
+
+            var publicPhotos = post.Photos
+                .Where(p => p.IsPublic)
+                .Select(p => new PostPhotoDto
+                {
+                    PhotoId = p.PhotoId,
+                    OriginalFileUrl = p.OriginalFileUrl,
+                    IsPublic = p.IsPublic
+                });
             var dto = new PostResponseDto
             {
                 PostId = post.PostId,
@@ -227,17 +238,10 @@ namespace PicSocial.Server.Services.Implementations
                 Title = post.Title,
                 LicenseName = post.License?.Name,
                 CreatedDate = post.CreatedDate,
-                Photos = post.Photos.Select(p => new PostPhotoDto
-                {
-                    PhotoId = p.PhotoId,
-                    OriginalFileUrl = p.OriginalFileUrl,
-                    IsPublic = p.IsPublic
-                }).ToList(),
+                Photos = publicPhotos.ToList(),
                 UpdatedDate = post.UpdatedDate
             };
             return Results<PostResponseDto>.Ok(dto);
         }
-
-        //view photo detail in a post
     }
 }
