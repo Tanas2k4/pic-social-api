@@ -31,7 +31,7 @@ namespace PicSocial.Server.Services.Implementations
             {
                 Email = registerDto.Email,
                 UserName = registerDto.UserName,
-                FirstName = registerDto.FirstName,
+                FullName = registerDto.FirstName,
             };
 
             var result = await _userManager.CreateAsync(user, registerDto.Password);

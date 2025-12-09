@@ -23,15 +23,13 @@ namespace PicSocial.Server.Services.Implementations
             var currentUser = await _userManager.FindByIdAsync(currentUserId);
             if (currentUser == null)
                 return Result.Unauthorized("User not found");
-            
-            var photo = await _context.Photos.FirstOrDefaultAsync(p =>  p.PhotoId == photoId);
+            var photo = await _context.Photos.FirstOrDefaultAsync(p => p.PhotoId == photoId);
             if (photo == null)
                 return Result.NotFound("Not found");
-                
             if (dto.IsPublic.HasValue)
                 photo.IsPublic = dto.IsPublic.Value;
 
-            if (dto.AllowDownload.HasValue) 
+            if (dto.AllowDownload.HasValue)
                 photo.AllowDownload = dto.AllowDownload.Value;
 
             await _context.SaveChangesAsync();
@@ -39,8 +37,27 @@ namespace PicSocial.Server.Services.Implementations
         }
 
 
-        //View detail all photos in a post
+        //View detail a photos in a photos
+        public async Task<Results<PhotoDetailDto>> GetPhotoByIdAsync(string userId, Guid photoId)
+        {
+            var photoDtos = await _context.Photos
+                .Where(p => p.PhotoId == photoId && p.UserId == userId)
+                .Select(p => new PhotoDetailDto
+                {
+                    UserId = p.UserId,
+                    PostId = p.PostId,
+                    PhotoId = p.PhotoId,
+                    AllowDownload = p.AllowDownload,
+                    MaxPublicResolution = p.MaxPublicResolution,
+                    CreatedDate = p.CreatedDate,
+                    UpdatedDate = p.UpdatedDate
+                })
+            .FirstOrDefaultAsync();
+            if (photoDtos == null)
+                return Results<PhotoDetailDto>.NotFound("Photo not found");
 
+            return Results<PhotoDetailDto>.Ok(photoDtos);
+        }
 
         //dowload a photo in a post
 

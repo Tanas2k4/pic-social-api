@@ -31,9 +31,9 @@ namespace PicSocial.Server.Services.Implementations
         {
             var currentUser = await _userManager.FindByIdAsync(currentUserId);
             if (currentUser == null)
-                return  Result.NotFound("Current user not found");
+                return Result.NotFound("Current user not found");
             if (currentUserId == followDto.Id)
-                return  Result.NotFound("You cannot follow yourself");
+                return Result.NotFound("You cannot follow yourself");
 
             var userToFollow = await _userManager.FindByIdAsync(followDto.Id);
             if (userToFollow == null)
@@ -100,9 +100,9 @@ namespace PicSocial.Server.Services.Implementations
             var followers = await _context.Follows
                 .Where(f => f.FollowedId == userId)
                 .Select(f => new
-                {                 
+                {
                     FollowerUserName = f.Follower.UserName,
-                    FollowerFirstName = f.Follower.FirstName,
+                    FollowerFirstName = f.Follower.FullName,
                     FollowerAvatar = f.Follower.AvatarUrl
                 })
                 .ToListAsync();
@@ -120,7 +120,7 @@ namespace PicSocial.Server.Services.Implementations
                 .Select(f => new
                 {
                     FollowingUserName = f.Followed.UserName,
-                    FollowingFirstName = f.Followed.FirstName,
+                    FollowingFirstName = f.Followed.FullName,
                     FollowingAvatar = f.Followed.AvatarUrl
                 })
                 .ToListAsync();

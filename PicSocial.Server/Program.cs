@@ -11,14 +11,13 @@ using PicSocial.Server.Services.Interfaces;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
-//Add DbContext     
+//Add AddDbContext
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 //Add Identity
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
-
 // JWT config
 var jwtSettings = builder.Configuration.GetSection("Jwt");
 builder.Services.AddAuthentication(options =>

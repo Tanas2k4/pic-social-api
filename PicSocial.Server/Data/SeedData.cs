@@ -26,7 +26,7 @@ namespace PicSocial.Server.Data
                 {
                     UserName = "Admin",
                     Email = adminEmail,
-                    FirstName = " Tran Tan",
+                    FullName = " Tran Tan",
                     EmailConfirmed = true
                 };
 

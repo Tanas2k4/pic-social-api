@@ -8,7 +8,6 @@ namespace PicSocial.Server.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    
     public class PhotoController : ControllerBase
     {
         private readonly IPhotoService _photoService;
@@ -24,11 +23,19 @@ namespace PicSocial.Server.Controllers
         public async Task<IActionResult> UpdatePhoto(Guid photoId, [FromBody] PhotoUpdateDto dto)
         {
             var currentUser = await _userManager.GetUserAsync(User);
-            if (currentUser == null) 
+            if (currentUser == null)
                 return Unauthorized();
 
             var result = await _photoService.UpdatePhotoAsync(photoId, currentUser.Id, dto);
             return StatusCode(result.StatusCode, new { message = result.Message });
+        }
+
+        //Xem chi tiết từng ảnh 
+        [HttpGet("{photoId}")]
+        public async Task<IActionResult> GetPhotoAsync(Guid photoId, string userId)
+        {
+            var result = await _photoService.GetPhotoByIdAsync(userId, photoId);
+            return StatusCode(result.StatusCode, result.Data);
         }
     }
 }

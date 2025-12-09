@@ -27,7 +27,7 @@ namespace PicSocial.Server.Services.Implementations
             var dto = new ProfileUserDto
             {
                 UserName = targetUser.UserName!,
-                FirstName = targetUser.FirstName,
+                FirstName = targetUser.FullName,
                 Bio = targetUser.Bio,
                 AvatarUrl = targetUser.AvatarUrl,
                 CoverPhotoUrl = targetUser.CoverPhotoUrl,
@@ -53,7 +53,7 @@ namespace PicSocial.Server.Services.Implementations
             var dto = new ProfileUserDto
             {
                 UserName = currentUser.UserName!,
-                FirstName = currentUser.FirstName,
+                FirstName = currentUser.FullName,  
                 Bio = currentUser.Bio,
                 AvatarUrl = currentUser.AvatarUrl,
                 CoverPhotoUrl = currentUser.CoverPhotoUrl,
@@ -72,7 +72,7 @@ namespace PicSocial.Server.Services.Implementations
                 return Results<ProfileUserDto>.NotFound();
             
             if (!string.IsNullOrWhiteSpace(updateProfileDto.FirstName))
-                currentUser.FirstName = updateProfileDto.FirstName;
+                currentUser.FullName = updateProfileDto.FirstName;
   
             if (!string.IsNullOrWhiteSpace(updateProfileDto.Bio))
                 currentUser.Bio = updateProfileDto.Bio;
@@ -84,7 +84,7 @@ namespace PicSocial.Server.Services.Implementations
             return Results<ProfileUserDto>.Ok(new ProfileUserDto
             {
                 UserName = currentUser.UserName!,
-                FirstName = currentUser.FirstName,
+                FirstName = currentUser.FullName,
                 Bio = currentUser.Bio,
                 AvatarUrl = currentUser.AvatarUrl,
                 CoverPhotoUrl = currentUser.CoverPhotoUrl,

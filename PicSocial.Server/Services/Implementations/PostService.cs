@@ -49,7 +49,7 @@ namespace PicSocial.Server.Services.Implementations
 
                 licenseId = license.LicenseId; // GÁN vào licenseId của POST
             }
-        
+
             // Create new post
             var post = new Post
             {
@@ -57,7 +57,7 @@ namespace PicSocial.Server.Services.Implementations
                 Title = title,
                 LicenseId = licenseId,
                 CreatedDate = DateTimeOffset.Now
-            }; 
+            };
 
             // Upload each file to Google Cloud Storage and save to database
             foreach (var file in files)
@@ -69,20 +69,18 @@ namespace PicSocial.Server.Services.Implementations
                     objectName,
                     file.ContentType
                 );
-                
                 post.Photos.Add(new Photo
                 {
                     UserId = currentUser.Id,
                     OriginalFileUrl = fileUrl,
                     CreatedDate = DateTimeOffset.Now,
-                    IsPublic = true                   
+                    IsPublic = true
                 });
             }
 
             _context.Posts.Add(post);
             await _context.SaveChangesAsync();
 
-    
             var dto = new PostResponseDto
             {
                 PostId = post.PostId,
@@ -138,15 +136,13 @@ namespace PicSocial.Server.Services.Implementations
         {
             var currentUser = await _userManager.FindByIdAsync(currentUserId);
             if (currentUser == null)
-                return Results<PostResponseDto>.Unauthorized("User not found");        
-
+                return Results<PostResponseDto>.Unauthorized("User not found");
             var post = await _context.Posts
                 .Include(p => p.Photos)
                 .Include(p => p.License)
                 .FirstOrDefaultAsync(p => p.PostId == postId && p.UserId == currentUserId);
             if (post == null)
                 return Results<PostResponseDto>.NotFound("Post not found or you do not have permission to update this post.");
-            
             if (!string.IsNullOrWhiteSpace(newTitle))
                 post.Title = newTitle;
             if (licenseId.HasValue)
@@ -177,7 +173,7 @@ namespace PicSocial.Server.Services.Implementations
                 UpdatedDate = post.UpdatedDate
             };
 
-            return Results<PostResponseDto>.Ok(dto," updated succesfully");
+            return Results<PostResponseDto>.Ok(dto, " updated succesfully");
         }
 
         //get all post of a user 
@@ -211,7 +207,7 @@ namespace PicSocial.Server.Services.Implementations
             }).ToList();
             return Results<List<PostResponseDto>>.Ok(postDtos);
         }
-  
+
         //view a post by postId
         public async Task<Results<PostResponseDto>> GetPostByIdAsync(Guid postId)
         {

@@ -129,7 +129,7 @@ namespace PicSocial.Server.Models
                 .HasOne<ApplicationUser>()
                 .WithMany(u => u.Albums)
                 .HasForeignKey(a => a.UserId)
-                .OnDelete(DeleteBehavior.ClientSetNull); 
+                .OnDelete(DeleteBehavior.ClientSetNull);
 
             // Configure AlbumPhotos
             builder.Entity<AlbumPhoto>()

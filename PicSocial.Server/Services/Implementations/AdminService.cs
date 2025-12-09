@@ -20,7 +20,7 @@ namespace PicSocial.Server.Services.Implementations
         public async Task<IActionResult> GetAllUserAsync()
         {
             var users = await _context.Users
-                .Select(u => new { u.AvatarUrl, u.FirstName, u.UserName, u.Email })
+                .Select(u => new { u.AvatarUrl, u.FullName, u.UserName, u.Email })
                 .ToListAsync();
             return new OkObjectResult(users);
         }
