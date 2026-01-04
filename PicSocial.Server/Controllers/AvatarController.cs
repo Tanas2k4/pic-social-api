@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using PicSocial.Server.DTOs.AvatarsDto;
 using PicSocial.Server.Models;
 using PicSocial.Server.Services.Interfaces;
 
@@ -20,30 +21,52 @@ namespace PicSocial.Server.Controllers
             _avatarService = avatarService;
         }
 
-        // POST api/avatar
+        /// <summary>
+        /// Upload or update user avatar.
+        /// </summary>
+        /// <remarks>
+        /// Uploads a new avatar image for the currently authenticated user.
+        /// The image must be sent as multipart/form-data.
+        /// </remarks>
+        /// <param name="avatar">Avatar image file</param>
+        /// <response code="200">Avatar uploaded successfully</response>
+        /// <response code="400">No file uploaded</response>
+        /// <response code="401">Unauthorized</response>
         [HttpPost]
-        public async Task<IActionResult> UploadAvatar([FromForm] IFormFile avatar)
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> UploadAvatar(
+            [FromForm] AvatarUploadDto avatar)
         {
-            //Kiểm tra chính chủ
             var currentUser = await _userManager.GetUserAsync(User);
             if (currentUser == null)
                 return Unauthorized();
 
-            var result = await _avatarService.UploadAvatarAsync(currentUser.Id, avatar);
-            return StatusCode(result.StatusCode, new { message = result.Message});
+            var result = await _avatarService.UploadAvatarAsync(
+                currentUser.Id,
+                avatar.Avatar!
+            );
+
+            return StatusCode(result.StatusCode, new { message = result.Message });
         }
 
-        // DELETE api/avatar
+        /// <summary>
+        /// Delete current user's avatar.
+        /// </summary>
+        /// <remarks>
+        /// Removes the avatar image of the currently authenticated user.
+        /// </remarks>
+        /// <response code="200">Avatar deleted successfully</response>
+        /// <response code="401">Unauthorized</response>
+        /// <response code="404">No avatar to delete</response>
         [HttpDelete]
         public async Task<IActionResult> DeleteAvatar()
         {
-            //Kiểm tra chính chủ
             var currentUser = await _userManager.GetUserAsync(User);
             if (currentUser == null)
                 return Unauthorized();
 
             var result = await _avatarService.DeleteAvatarAsync(currentUser.Id);
-            return StatusCode(result.StatusCode, new { message = result.Message});
+            return StatusCode(result.StatusCode, new { message = result.Message });
         }
     }
 }

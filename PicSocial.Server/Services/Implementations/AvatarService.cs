@@ -21,7 +21,7 @@ namespace PicSocial.Server.Services.Implementations
         {
             var currentUser = await _userManager.FindByIdAsync(currentUserId);
             if (currentUser == null)         
-                return Result.Unauthorized("User not found");
+                return Result.Unauthorized("Unauthorized");
 
             //Kiểm tra file được tải lên
             if (avatar == null)
@@ -51,7 +51,7 @@ namespace PicSocial.Server.Services.Implementations
         {
             var currentUser = await _userManager.FindByIdAsync(currentUserId);
             if (currentUser == null)            
-                return Result.Unauthorized("User not found");
+                return Result.Unauthorized("Unauthorized");
 
             if (string.IsNullOrEmpty(currentUser.AvatarUrl))          
                 return Result.Bad("No avatar to delete");
