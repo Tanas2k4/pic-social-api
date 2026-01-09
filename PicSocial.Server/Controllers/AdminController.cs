@@ -12,13 +12,11 @@ namespace PicSocial.Server.Controllers
     public class AdminController : ControllerBase
     {
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly ApplicationDbContext _context;
         private readonly IAdminService _adminService;
 
-        public AdminController(UserManager<ApplicationUser> userManager, ApplicationDbContext context, IAdminService adminService)
+        public AdminController(UserManager<ApplicationUser> userManager, IAdminService adminService)
         {
             _userManager = userManager;
-            _context = context;
             _adminService = adminService;
         }
 
@@ -50,7 +48,7 @@ namespace PicSocial.Server.Controllers
         /// 403 Forbidden: If not Admin and trying to delete another user.
         /// </returns>
         /// <response code="200">true</response>
-        /// <response code="400">Xóa người dùng thất bại</response>
+        /// <response code="400">delete user failed</response>
         /// <response code="401">Unauthorized</response>
         /// <response code="403">Forbidden (not authorized to delete this user)</response>
         [HttpDelete("user/{userId}")]

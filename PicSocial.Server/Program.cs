@@ -92,7 +92,7 @@ builder.Services.AddSwaggerGen(c =>
                     Type = ReferenceType.SecurityScheme,
                     Id = "Bearer"
                 }
-            },
+            }, 
             Array.Empty<string>()
         }
     });
