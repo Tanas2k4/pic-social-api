@@ -61,11 +61,10 @@ namespace PicSocial.Server.Controllers
             var result = await _adminService.DeleteUserAsync(userId, currentUser.Id);
             if (!result)
             {
-                return BadRequest(new { message = "Xóa người dùng thất bại" });
+                return BadRequest(new { message = "Delete user failed" });
             }
             return Ok(result);
         }
-
         /// <summary>
         /// Retrieves all reports submitted in the system (Admin only).
         /// </summary>

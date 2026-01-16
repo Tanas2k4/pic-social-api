@@ -49,6 +49,26 @@ namespace PicSocial.Server.Services.Implementations
                     PhotoId = p.PhotoId,
                     AllowDownload = p.AllowDownload,
                     MaxPublicResolution = p.MaxPublicResolution,
+                    photoMetadataDto = p.Metadata == null ? null : new PhotoMetadataDto
+                    {
+                        Lens = p.Metadata.Lens,
+                        Aperture = p.Metadata.Aperture,
+                        ShutterSpeed = p.Metadata.ShutterSpeed,
+                        ISO = p.Metadata.ISO,
+                        CameraModel = p.Metadata.CameraModel,
+                        Location = p.Metadata.Location,
+                        IPTCKeywords = p.Metadata.IPTCKeywords,
+                        IPTCCaption = p.Metadata.IPTCCaption
+                    },
+                    photoXmpMetadataDto = p.XmpMetadata == null ? null : new PhotoXmpMetadataDto
+                    {
+                        RawXmp = p.XmpMetadata.RawXmp,
+                        Rating = p.XmpMetadata.Rating,
+                        Title = p.XmpMetadata.Title,
+                        Caption = p.XmpMetadata.Caption,
+                        KeywordsJson = p.XmpMetadata.KeywordsJson,
+                        ColorLabel = p.XmpMetadata.ColorLabel
+                    },
                     CreatedDate = p.CreatedDate,
                     UpdatedDate = p.UpdatedDate
                 })
@@ -59,7 +79,7 @@ namespace PicSocial.Server.Services.Implementations
             return Results<PhotoDetailDto>.Ok(photoDtos);
         }
 
-        //dowload a photo in a post
+        //download a photo in a post
 
 
     }
