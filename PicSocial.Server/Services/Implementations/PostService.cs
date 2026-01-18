@@ -6,6 +6,7 @@ using PicSocial.Server.Models;
 using PicSocial.Server.Models.Entities;
 using PicSocial.Server.Services.Interfaces;
 using PicSocial.Server.Shared;
+using MetadataExtractor;
 using System.ComponentModel;
 
 namespace PicSocial.Server.Services.Implementations
@@ -16,11 +17,15 @@ namespace PicSocial.Server.Services.Implementations
         private readonly GoogleCloudStorageService _googleCloudStorageService;
         private readonly UserManager<ApplicationUser> _userManager;
 
-        public PostService(ApplicationDbContext context, GoogleCloudStorageService googleCloudStorageService, UserManager<ApplicationUser> userManager)
+        private readonly IPhotoMetadataService _photoMetadataService;
+        private readonly IPhotoXmpMetadataService _photoXmpMetadataService;
+        public PostService(ApplicationDbContext context, GoogleCloudStorageService googleCloudStorageService, UserManager<ApplicationUser> userManager, IPhotoMetadataService photoMetadataService, IPhotoXmpMetadataService photoXmpMetadataService )
         {
             _context = context;
             _googleCloudStorageService = googleCloudStorageService;
             _userManager = userManager;
+            _photoMetadataService = photoMetadataService;
+            _photoXmpMetadataService = photoXmpMetadataService;
         }
 
         //post a post
@@ -37,7 +42,7 @@ namespace PicSocial.Server.Services.Implementations
             //(Optional) tùy chọn 1 value trong License
             var license = licenseId.HasValue ? await _context.Licenses.FindAsync(licenseId.Value) : null;
             if (licenseId.HasValue && license == null)
-                return Results<PostResponseDto>.Bad("Licences not found");
+                return Results<PostResponseDto>.Bad("License not found");
             // Nếu client không gửi license → lấy mặc định "All Rights Reserved"
             if (!licenseId.HasValue)
             {
@@ -63,19 +68,44 @@ namespace PicSocial.Server.Services.Implementations
             foreach (var file in files)
             {
                 var objectName = $"Post/{currentUser.Id}/{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
+                var memoryStream = new MemoryStream();
+                await file.CopyToAsync(memoryStream);
+                memoryStream.Position = 0;
 
                 var fileUrl = await _googleCloudStorageService.UploadFileAsync(
-                    file.OpenReadStream(),
+                    memoryStream,
                     objectName,
                     file.ContentType
                 );
-                post.Photos.Add(new Photo
+
+                var photo = new Photo
                 {
                     UserId = currentUser.Id,
+                    Post = post,
                     OriginalFileUrl = fileUrl,
                     CreatedDate = DateTimeOffset.Now,
                     IsPublic = true
-                });
+                };
+
+                // Extract XMP metadata
+                memoryStream.Position = 0;
+                var xmpMetadata = _photoXmpMetadataService.ExtractXmp(memoryStream);
+                if (xmpMetadata != null)
+                {
+                    xmpMetadata.Photo = photo;
+                    photo.XmpMetadata = xmpMetadata;
+                }
+
+                //Extract EXIF/IPTC metadata
+                memoryStream.Position = 0;
+                var exifMetadata = _photoMetadataService.ExtractExifIptc(memoryStream, photo.PhotoId);
+                if (exifMetadata != null)
+                {
+                    exifMetadata.Photo = photo;
+                    photo.Metadata = exifMetadata;
+                }
+
+                post.Photos.Add(photo);
             }
 
             _context.Posts.Add(post);
@@ -121,9 +151,10 @@ namespace PicSocial.Server.Services.Implementations
             //Xoa anh tren Google Cloud Storage
             foreach (var photo in post.Photos)
             {
-                var objectName = new Uri(photo.OriginalFileUrl).Segments.Last();
+                var uri = new Uri(photo.OriginalFileUrl);
+                var objectName = string.Join("",uri.Segments.Skip(2));
                 await _googleCloudStorageService.DeleteFileAsync(objectName);
-            }
+            } 
 
             //Xoa Post va anh trong database
             _context.Posts.Remove(post);
@@ -173,7 +204,7 @@ namespace PicSocial.Server.Services.Implementations
                 UpdatedDate = post.UpdatedDate
             };
 
-            return Results<PostResponseDto>.Ok(dto, " updated succesfully");
+            return Results<PostResponseDto>.Ok(dto, " updated successfully");
         }
 
         //get all post of a user 
@@ -188,7 +219,7 @@ namespace PicSocial.Server.Services.Implementations
             if (posts == null || posts.Count == 0)
                 return Results<List<PostResponseDto>>.NotFound("No posts found for the specified user.");
 
-            var postDtos = posts.Select(post => new PostResponseDto
+            var postDto = posts.Select(post => new PostResponseDto
             {
                 PostId = post.PostId,
                 UserId = post.UserId,
@@ -205,7 +236,7 @@ namespace PicSocial.Server.Services.Implementations
                 }).ToList(),
                 UpdatedDate = post.UpdatedDate
             }).ToList();
-            return Results<List<PostResponseDto>>.Ok(postDtos);
+            return Results<List<PostResponseDto>>.Ok(postDto);
         }
 
         //view a post by postId

@@ -40,7 +40,7 @@ namespace PicSocial.Server.Services.Implementations
         //View detail a photos in a photos
         public async Task<Results<PhotoDetailDto>> GetPhotoByIdAsync(string userId, Guid photoId)
         {
-            var photoDtos = await _context.Photos
+            var photoDto = await _context.Photos
                 .Where(p => p.PhotoId == photoId && p.UserId == userId)
                 .Select(p => new PhotoDetailDto
                 {
@@ -73,10 +73,10 @@ namespace PicSocial.Server.Services.Implementations
                     UpdatedDate = p.UpdatedDate
                 })
             .FirstOrDefaultAsync();
-            if (photoDtos == null)
+            if (photoDto == null)
                 return Results<PhotoDetailDto>.NotFound("Photo not found");
 
-            return Results<PhotoDetailDto>.Ok(photoDtos);
+            return Results<PhotoDetailDto>.Ok(photoDto);
         }
 
         //download a photo in a post

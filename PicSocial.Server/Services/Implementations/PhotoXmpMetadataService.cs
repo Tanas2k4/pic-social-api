@@ -10,9 +10,10 @@ public class PhotoXmpMetadataService : IPhotoXmpMetadataService
     private const string NS_XMP = "http://ns.adobe.com/xap/1.0/";
     private const string NS_DC = "http://purl.org/dc/elements/1.1/";
 
-    public PhotoXmpMetadata? ExtractXmp(Stream stream, Guid photoId)
+
+    public PhotoXmpMetadata? ExtractXmp(Stream stream)
     {
-        if (stream.CanSeek && stream.Position != 0)
+        if (stream.CanSeek)
             stream.Position = 0;
 
         var directories = ImageMetadataReader.ReadMetadata(stream);
@@ -26,8 +27,7 @@ public class PhotoXmpMetadataService : IPhotoXmpMetadataService
 
         return new PhotoXmpMetadata
         {
-            PhotoId = photoId,
-            RawXmp = xmpDir.ToString(), // 2.9.0 compatible
+            RawXmp = xmpDir.ToString(),
             Rating = xmp.GetPropertyInteger(NS_XMP, "Rating"),
             Title = xmp.GetLocalizedText(NS_DC, "title", null, "x-default")?.Value,
             Caption = xmp.GetLocalizedText(NS_DC, "description", null, "x-default")?.Value,
@@ -38,11 +38,13 @@ public class PhotoXmpMetadataService : IPhotoXmpMetadataService
         };
     }
 
+    // Helper method to extract keywords from XMP metadata
     private List<string> GetKeywords(IXmpMeta xmpMeta)
     {
         var keywords = new List<string>();
         var count = xmpMeta.CountArrayItems(NS_DC, "subject");
-
+        
+        // If no keywords found, return empty list
         for (int i = 1; i <= count; i++)
         {
             var item = xmpMeta.GetArrayItem(NS_DC, "subject", i);
