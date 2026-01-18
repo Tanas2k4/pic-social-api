@@ -9,7 +9,7 @@ API backend for a social web(app) about photos, life or many other things.
 
 I only build API and you can visit **[picsocial-api-docs](https://tanas2k4.github.io/picsocial-api-docs)**, but it only static docs.
 
-##Tech Stack
+## Tech Stack
 
 - **ASP.NET Core (Web API)**
 - **EF Core**
@@ -35,8 +35,50 @@ Navigate to the project
 cd PicSocial.Server
 ```
 Configure environment
-- Copy `appsettings.Example.json` to `appsettings.Development.json`
+- You can config at `appsettings.Development.json` or `appsettings.json` if you have
 - Update the database connection string and JWT settings
+## Cloud Storage Configuration (Google Cloud Storage)
+This project uses Google Cloud Storage (GCS) for storing uploaded media files.
+Each developer is required to create and use their own Google Cloud Storage bucket.
+Prerequisites
+- A Google Cloud Platform (GCP) account
+- A GCP project with billing enabled
+Create a Google Cloud Storage Bucket
+1. Go to Google Cloud Console
+2. Create a new project (or use an existing one)
+3. Navigate to Cloud Storage → Buckets
+4. Create a new bucket with the following recommendations:
+  - Location type: Region
+  - Storage class: Standard
+  - Access control: Uniform
+5. Note down the bucket name
+Create a Service Account
+1. Go to IAM & Admin → Service Accounts
+2. Create a new service account
+3. Grant the following role:
+  - `Storage Object Admin`
+4. Generate a JSON key file
+5. Download and keep the key file secure
+(Do NOT commit this file to the repository)
+## Configure Application Settings
+Update your appsettings.Development.json with your own bucket information:
+```csharp
+{
+  "GoogleCloudStorage": {
+    "BucketName": "your-bucket-name",
+    "ProjectId": "your-gcp-project-id",
+    "CredentialsPath": "path/to/your/service-account-key.json"
+  }
+}
+```
+Alternatively, you can set the credentials using an environment variable:
+```bash
+GOOGLE_APPLICATION_CREDENTIALS=path/to/your/service-account-key.json
+```
+## Notes
+- Each developer should use their own GCS bucket
+- Bucket credentials must never be shared or committed to source control
+- The application assumes full access to the configured bucket for upload and retrieval operations
 Apply database migrations
 ```bash
 dotnet ef migration add FirstInitial
@@ -46,7 +88,7 @@ Run the application
 ```bash
 dotnet run
 ```
-The API will be available at: https://localhost:5001
+The API will be available at: https://localhost:5187
 
 ## Authentication
 
@@ -61,6 +103,7 @@ Authorization: Bearer <your_token>
 - Upload and manage posts
 - Metadata and XMP metadata processing for media files
 - Secure RESTful endpoints
+You can see all details features at **[picsocial-api-docs](https://tanas2k4.github.io/picsocial-api-docs)**
 ## Testing
 
 You can test the API using:
