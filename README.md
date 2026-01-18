@@ -2,7 +2,10 @@
 
 
 [![.NET 9.0](https://img.shields.io/badge/.NET-9.0-512BD4?logo=.net&logoColor=white)](https://dotnet.microsoft.com/)
-[![ASP.NET Core](https://img.shields.io/badge/ASP.NET_Core-512BD4?logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/apps/aspnet)
+[![ASP.NET Core](https://img.shields.io/badge/ASP.NET_Core-9.0-512BD4?logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/apps/aspnet)
+[![SQL Server](https://img.shields.io/badge/SQL_Server-CC2927?logo=microsoft-sql-server&logoColor=white)](https://www.microsoft.com/en-us/sql-server)
+[![JWT](https://img.shields.io/badge/JWT-black?logo=json-web-tokens&logoColor=white)](https://jwt.io)
+[![Google Cloud Storage](https://img.shields.io/badge/Google_Cloud_Storage-4285F4?logo=google-cloud&logoColor=white)](https://cloud.google.com/storage)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
   
 API backend for a social web(app) about photos, life or many other things.
