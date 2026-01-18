@@ -37,48 +37,74 @@ cd PicSocial.Server
 Configure environment
 - You can config at `appsettings.Development.json` or `appsettings.json` if you have
 - Update the database connection string and JWT settings
-## Cloud Storage Configuration (Google Cloud Storage)
-This project uses Google Cloud Storage (GCS) for storing uploaded media files.
-Each developer is required to create and use their own Google Cloud Storage bucket.
-Prerequisites
+## Google Cloud Storage (GCS) Configuration
+This project uses **Google Cloud Storage** to store uploaded media files (images, videos, documents, etc.).
+
+**Each developer must create and use their own bucket** during local development to prevent conflicts and ensure data isolation.
+
+## Prerequisites
+
 - A Google Cloud Platform (GCP) account
-- A GCP project with billing enabled
-Create a Google Cloud Storage Bucket
-1. Go to Google Cloud Console
-2. Create a new project (or use an existing one)
-3. Navigate to Cloud Storage → Buckets
-4. Create a new bucket with the following recommendations:
-  - Location type: Region
-  - Storage class: Standard
-  - Access control: Uniform
-5. Note down the bucket name
-Create a Service Account
-1. Go to IAM & Admin → Service Accounts
-2. Create a new service account
-3. Grant the following role:
-  - `Storage Object Admin`
-4. Generate a JSON key file
-5. Download and keep the key file secure
-(Do NOT commit this file to the repository)
-## Configure Application Settings
-Update your appsettings.Development.json with your own bucket information:
-```csharp
+- A GCP project with **billing enabled**
+- Permissions to create buckets and service accounts (usually Owner or Editor role)
+
+## Step 1: Create a Google Cloud Storage Bucket
+
+1. Go to the [Google Cloud Console](https://console.cloud.google.com/)
+2. Select or create a new project (recommended: use a personal or dev-specific project)
+3. Navigate to **Cloud Storage → Buckets**
+4. Click **Create bucket**
+5. Recommended settings for development environments:
+
+   | Setting                | Recommended Value                        | Reason                                                                 |
+   |------------------------|------------------------------------------|------------------------------------------------------------------------|
+   | Name                   | `yourname-project-media-dev`             | Must be **globally unique**; include personal/project prefix           |
+   | Location type          | **Region**                               | Lower cost and latency compared to multi-region                        |
+   | Location               | Choose closest region (e.g., `asia-southeast1` - Singapore) | Best latency for developers in Vietnam / Southeast Asia                |
+   | Default storage class  | **Standard**                             | Suitable for frequent access in development                            |
+   | Access control         | **Uniform**                              | Simpler and more secure (Google's recommendation)                      |
+   | Protection tools       | Do **not** enable Object Versioning      | Avoid unnecessary storage costs in dev                                 |
+
+6. Click **Create** → Record the **bucket name** (e.g., `tan2883-media-dev-2026`)
+
+## Step 2: Create a Service Account and Key
+
+1. Go to **IAM & Admin → Service Accounts**
+2. Click **+ Create Service Account**
+3. Fill in details:
+
+   - Service account name: `media-upload-dev-[your-name]`
+   - Service account ID: auto-generated
+   - Description: "Service account for media uploads in development"
+
+4. **Grant this service account access to project** → Assign role:
+
+   - **Storage Object Admin** (`roles/storage.objectAdmin`)  
+     → Allows full read/write/delete access to objects in the bucket (suitable for dev)
+
+   *Note: In production, use narrower roles like `Storage Object Creator` + `Storage Object Viewer`*
+
+5. Skip **Grant users access to this service account** (not needed)
+6. After creation → Click **Keys → Add Key → Create new key → JSON**
+7. The JSON key file will download automatically → Save it securely (e.g., `gcp-media-dev-key.json`)
+8. **Never commit this file to Git!**
+
+## Step 3: Configure the Application
+
+### Option 1: Use JSON Key File (Recommended for Local Development)
+
+Update **`appsettings.Development.json`** (or `appsettings.json` depending on your environment):
+
+```json
 {
   "GoogleCloudStorage": {
-    "BucketName": "your-bucket-name",
-    "ProjectId": "your-gcp-project-id",
-    "CredentialsPath": "path/to/your/service-account-key.json"
+    "BucketName": "tan2883-media-dev-2026",
+    "ProjectId": "your-project-id-123456",
+    "CredentialsPath": "C:\\Users\\YourName\\gcp-media-dev-key.json"
+    // or "~/gcp-media-dev-key.json" on macOS/Linux
   }
 }
 ```
-Alternatively, you can set the credentials using an environment variable:
-```bash
-GOOGLE_APPLICATION_CREDENTIALS=path/to/your/service-account-key.json
-```
-## Notes
-- Each developer should use their own GCS bucket
-- Bucket credentials must never be shared or committed to source control
-- The application assumes full access to the configured bucket for upload and retrieval operations
 Apply database migrations
 ```bash
 dotnet ef migration add FirstInitial
