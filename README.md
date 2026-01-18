@@ -148,7 +148,7 @@ Example configuration:
 ```json
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Server=.;Database=PicSocialDb;Trusted_Connection=True;"
+    "DefaultConnection": "Server=<YOUR-SERVER-NAME>;Database=PicSocialDb;Trusted_Connection=True;TrustServerCertificate=True"
   },
   "Jwt": {
     "Key": "your-secret-key",
