@@ -46,10 +46,8 @@ Run the application
 ```bash
 dotnet run
 ```
-The API will be available at:
-```bash
-[https://localhost:5178](https://localhost:5001)
-```
+The API will be available at: https://localhost:5001
+
 ## Authentication
 
 Authentication is handled using JWT Bearer Tokens.
@@ -57,3 +55,35 @@ Include the token in the `Authorization` header:
 ```bash
 Authorization: Bearer <your_token>
 ```
+## API Features
+
+- User authentication and authorization
+- Upload and manage posts
+- Metadata and XMP metadata processing for media files
+- Secure RESTful endpoints
+## Testing
+
+You can test the API using:
+- Swagger UI (enabled in Development)
+- Postman or Insomnia
+Swagger endpoint:
+```bash
+/swagger
+```
+## Environment Variables
+
+Example configuration:
+```csharp
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=.;Database=PicSocialDb;Trusted_Connection=True;"
+  },
+  "Jwt": {
+    "Key": "your-secret-key",
+    "Issuer": "PicSocial",
+    "Audience": "PicSocialUsers"
+  }
+}
+```
+## License
+This project was built by **[Trần Tấn](https://github.com/Tanas2k4)**.
