@@ -145,7 +145,7 @@ Swagger endpoint:
 ## Environment Variables
 
 Example configuration:
-```csharp
+```json
 {
   "ConnectionStrings": {
     "DefaultConnection": "Server=.;Database=PicSocialDb;Trusted_Connection=True;"
