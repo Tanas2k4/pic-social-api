@@ -1,4 +1,4 @@
-#PicSocial API Backend-Server
+# PicSocial API Backend-Server
 
 
 [![.NET 9.0](https://img.shields.io/badge/.NET-9.0-512BD4?logo=.net&logoColor=white)](https://dotnet.microsoft.com/)
@@ -17,10 +17,43 @@ I only build API and you can visit **[picsocial-api-docs](https://tanas2k4.githu
 - **JWT Authentication**
 - **Google Cloud Storage**
 
-##Prerequisites
+## Prerequisites
 
 Make you sure have the following installed:
 - **[.NET SDK 9.0+](https://dotnet.microsoft.com/en-us/download/dotnet/9.0)**
 - SQL Server (or compatible database)
 - Git
- 
+
+ ## Setup & Run Locally
+
+ Clone the repository
+```bash
+git clone https://github.com/Tanas2k4/PicSocial.Server.git
+```
+Navigate to the project
+```bash
+cd PicSocial.Server
+```
+Configure environment
+- Copy `appsettings.Example.json` to `appsettings.Development.json`
+- Update the database connection string and JWT settings
+Apply database migrations
+```bash
+dotnet ef migration add FirstInitial
+dotnet ef database update
+```
+Run the application
+```bash
+dotnet run
+```
+The API will be available at:
+```bash
+[https://localhost:5178](https://localhost:5001)
+```
+## Authentication
+
+Authentication is handled using JWT Bearer Tokens.
+Include the token in the `Authorization` header:
+```bash
+Authorization: Bearer <your_token>
+```
