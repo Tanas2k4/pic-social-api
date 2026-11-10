@@ -209,6 +209,10 @@ namespace PicSocial.Server.Services.Implementations
         //get all post of a user 
         public async Task<Results<List<PostResponseDto>>> GetPostsByUserAsync(string userId)
         {
+            var userExists = await _context.Users.AnyAsync(u => u.Id == userId);
+            if (!userExists)
+                return Results<List<PostResponseDto>>.NotFound("User not found.");
+
             var posts = await _context.Posts
                 .Where(p => p.UserId == userId)
                 .Include(p => p.Photos)

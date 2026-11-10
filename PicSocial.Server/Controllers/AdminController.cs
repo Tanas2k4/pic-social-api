@@ -1,8 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using PicSocial.Server.DTOs.AdminDto;
-using PicSocial.Server.Models;
+using PicSocial.Server.Extensions;
 using PicSocial.Server.Models.Entities;
 using PicSocial.Server.Services.Interfaces;
 
@@ -13,12 +12,10 @@ namespace PicSocial.Server.Controllers
     [Authorize(Roles = "Admin")]
     public class AdminController : ControllerBase
     {
-        private readonly UserManager<ApplicationUser> _userManager;
         private readonly IAdminService _adminService;
 
-        public AdminController(UserManager<ApplicationUser> userManager, IAdminService adminService)
+        public AdminController(IAdminService adminService)
         {
-            _userManager = userManager;
             _adminService = adminService;
         }
 
@@ -59,13 +56,13 @@ namespace PicSocial.Server.Controllers
         [HttpDelete("user/{userId}")]
         public async Task<IActionResult> DeleteUser(string userId)
         {
-            var currentUser = await _userManager.GetUserAsync(User);
-            if (currentUser == null)
+            var currentUserId = User.GetUserId();
+            if (string.IsNullOrEmpty(currentUserId))
                 return Unauthorized();
 
             try
             {
-                var result = await _adminService.DeleteUserAsync(userId, currentUser.Id);
+                var result = await _adminService.DeleteUserAsync(userId, currentUserId);
                 return Ok(new { success = result, message = "User deleted successfully" });
             }
             catch (KeyNotFoundException)

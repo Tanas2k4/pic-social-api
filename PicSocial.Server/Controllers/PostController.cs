@@ -1,8 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using PicSocial.Server.Models;
 using PicSocial.Server.DTOs.PostsDto;
+using PicSocial.Server.Extensions;
 using PicSocial.Server.Services.Interfaces;
 
 namespace PicSocial.Server.Controllers
@@ -12,12 +11,10 @@ namespace PicSocial.Server.Controllers
     [Authorize]
     public class PostController : ControllerBase
     {
-        private readonly UserManager<ApplicationUser> _userManager;
         private readonly IPostService _postService;
 
-        public PostController(UserManager<ApplicationUser> userManager, IPostService postService)
+        public PostController(IPostService postService)
         {
-            _userManager = userManager;
             _postService = postService;
         }
 
@@ -40,11 +37,11 @@ namespace PicSocial.Server.Controllers
         [ProducesResponseType(typeof(PostResponseDto), 200)]
         public async Task<IActionResult> UploadPhoto([FromForm] string? title, [FromForm] List<IFormFile> files, [FromForm] Guid? licenseId)
         {
-            var currentUser = await _userManager.GetUserAsync(User);
-            if (currentUser == null)
+            var currentUserId = User.GetUserId();
+            if (string.IsNullOrEmpty(currentUserId))
                 return Unauthorized();
 
-            var result = await _postService.UploadPhotoAsync(currentUser.Id, title, files, licenseId);
+            var result = await _postService.UploadPhotoAsync(currentUserId, title, files, licenseId);
             return StatusCode(result.StatusCode, result.Success ? result.Data : new { message = result.Message });
         }
 
@@ -66,11 +63,11 @@ namespace PicSocial.Server.Controllers
         [HttpDelete("{postId}")]
         public async Task<IActionResult> DeletePost(Guid postId)
         {
-            var currentUser = await _userManager.GetUserAsync(User);
-            if (currentUser == null)
+            var currentUserId = User.GetUserId();
+            if (string.IsNullOrEmpty(currentUserId))
                 return Unauthorized();
 
-            var result = await _postService.DeletePostAsync(postId, currentUser.Id);
+            var result = await _postService.DeletePostAsync(postId, currentUserId);
             return StatusCode(result.StatusCode, new { message = result.Message });
         }
 
@@ -95,11 +92,11 @@ namespace PicSocial.Server.Controllers
         [ProducesResponseType(typeof(PostResponseDto), 200)]
         public async Task<IActionResult> UpdatePost(Guid postId, [FromForm] PostUpdateDto updatePostDto)
         {
-            var currentUser = await _userManager.GetUserAsync(User);
-            if (currentUser == null)
+            var currentUserId = User.GetUserId();
+            if (string.IsNullOrEmpty(currentUserId))
                 return Unauthorized();
 
-            var result = await _postService.UpdatePostAsync(postId, currentUser.Id, updatePostDto.Title, updatePostDto.LicenseId);
+            var result = await _postService.UpdatePostAsync(postId, currentUserId, updatePostDto.Title, updatePostDto.LicenseId);
             return StatusCode(result.StatusCode, result.Success ? result.Data : new { message = result.Message });
         }
 
@@ -117,10 +114,6 @@ namespace PicSocial.Server.Controllers
         [ProducesResponseType(typeof(List<PostResponseDto>), 200)]
         public async Task<IActionResult> GetPostsByUser(string userId)
         {
-            var user = await _userManager.FindByIdAsync(userId);
-            if (user == null)
-                return NotFound("User not found.");
-
             var results = await _postService.GetPostsByUserAsync(userId);
             return StatusCode(results.StatusCode, results.Success ? results.Data : new { message = results.Message });
         }

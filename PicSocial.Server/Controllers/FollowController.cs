@@ -1,8 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using PicSocial.Server.DTOs.FollowsDto;
-using PicSocial.Server.Models;
+using PicSocial.Server.Extensions;
 using PicSocial.Server.Services.Interfaces;
 
 namespace PicSocial.Server.Controllers
@@ -12,12 +11,10 @@ namespace PicSocial.Server.Controllers
     [Authorize]
     public class FollowController : ControllerBase
     {
-        private readonly UserManager<ApplicationUser> _userManager;
         private readonly IFollowService _service;
 
-        public FollowController(UserManager<ApplicationUser> userManager, IFollowService service)
+        public FollowController(IFollowService service)
         {
-            _userManager = userManager;
             _service = service;
         }
 
@@ -34,11 +31,11 @@ namespace PicSocial.Server.Controllers
         [HttpGet("isFollowing/{userId}")]
         public async Task<IActionResult> IsFollowing(string userId)
         {
-            var currentUser = await _userManager.GetUserAsync(User);
-            if (currentUser == null)
+            var currentUserId = User.GetUserId();
+            if (string.IsNullOrEmpty(currentUserId))
                 return Unauthorized();
 
-            var isFollowing = await _service.IsFollowingAsync(currentUser.Id, userId);
+            var isFollowing = await _service.IsFollowingAsync(currentUserId, userId);
             return Ok(new { message = isFollowing });
         }
 
@@ -59,11 +56,11 @@ namespace PicSocial.Server.Controllers
         [HttpPost]
         public async Task<IActionResult> FollowUser([FromBody] FollowDto followDto)
         {
-            var currentUser = await _userManager.GetUserAsync(User);
-            if (currentUser == null)
+            var currentUserId = User.GetUserId();
+            if (string.IsNullOrEmpty(currentUserId))
                 return Unauthorized();
 
-            var result = await _service.FollowUserAsync(currentUser.Id, followDto);
+            var result = await _service.FollowUserAsync(currentUserId, followDto);
 
             return StatusCode(result.StatusCode, new { message = result.Message });
         }
@@ -85,11 +82,11 @@ namespace PicSocial.Server.Controllers
         [HttpDelete("{userId}")]
         public async Task<IActionResult> UnfollowUser(string userId)
         {
-            var currentUser = await _userManager.GetUserAsync(User);
-            if (currentUser == null)
+            var currentUserId = User.GetUserId();
+            if (string.IsNullOrEmpty(currentUserId))
                 return Unauthorized();
 
-            var result = await _service.UnfollowUserAsync(currentUser.Id, userId);
+            var result = await _service.UnfollowUserAsync(currentUserId, userId);
 
             return StatusCode(result.StatusCode, new { message = result.Message });
         }
@@ -108,12 +105,8 @@ namespace PicSocial.Server.Controllers
         [HttpGet("followers/{id}")]
         public async Task<IActionResult> GetFollowers(string id)
         {
-            var user = await _userManager.FindByIdAsync(id);
-            if (user == null)
-                return NotFound(new { message = "User not found." });
-
             var result = await _service.GetFollowerAsync(id);
-            return Ok(result);
+            return StatusCode(result.StatusCode, result.Success ? result.Data : new { message = result.Message });
         }
 
         /// <summary>
@@ -130,12 +123,8 @@ namespace PicSocial.Server.Controllers
         [HttpGet("following/{id}")]
         public async Task<IActionResult> GetFollowing(string id)
         {
-            var user = await _userManager.FindByIdAsync(id);
-            if (user == null)
-                return NotFound(new { message = "User not found." });
-
             var result = await _service.GetFollowingAsync(id);
-            return Ok(result);
+            return StatusCode(result.StatusCode, result.Success ? result.Data : new { message = result.Message });
         }
     }
 }

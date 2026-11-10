@@ -1,8 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using PicSocial.Server.DTOs.PhotosDto;
-using PicSocial.Server.Models;
+using PicSocial.Server.Extensions;
 using PicSocial.Server.Services.Interfaces;
 
 namespace PicSocial.Server.Controllers
@@ -12,12 +11,10 @@ namespace PicSocial.Server.Controllers
     public class PhotoController : ControllerBase
     {
         private readonly IPhotoService _photoService;
-        private readonly UserManager<ApplicationUser> _userManager;
 
-        public PhotoController(IPhotoService photoService, UserManager<ApplicationUser> userManager)
+        public PhotoController(IPhotoService photoService)
         {
             _photoService = photoService;
-            _userManager = userManager;
         }
 
         /// <summary>
@@ -40,11 +37,11 @@ namespace PicSocial.Server.Controllers
         [HttpPatch("{photoId}")]
         public async Task<IActionResult> UpdatePhoto(Guid photoId, [FromBody] PhotoUpdateDto dto)
         {
-            var currentUser = await _userManager.GetUserAsync(User);
-            if (currentUser == null)
+            var currentUserId = User.GetUserId();
+            if (string.IsNullOrEmpty(currentUserId))
                 return Unauthorized();
 
-            var result = await _photoService.UpdatePhotoAsync(photoId, currentUser.Id, dto);
+            var result = await _photoService.UpdatePhotoAsync(photoId, currentUserId, dto);
             return StatusCode(result.StatusCode, new { message = result.Message });
         }
 

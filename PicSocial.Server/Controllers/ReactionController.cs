@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using PicSocial.Server.Models;
+using PicSocial.Server.Extensions;
 using PicSocial.Server.Services.Interfaces;
 
 namespace PicSocial.Server.Controllers
@@ -11,12 +10,10 @@ namespace PicSocial.Server.Controllers
     [Authorize]
     public class ReactionController : ControllerBase
     {
-        private readonly UserManager<ApplicationUser> _userManager;
         private readonly IReactionService _reactionService;
 
-        public ReactionController(UserManager<ApplicationUser> userManager, IReactionService reactionService)
+        public ReactionController(IReactionService reactionService)
         {
-            _userManager = userManager;
             _reactionService = reactionService;
         }
 
@@ -37,11 +34,11 @@ namespace PicSocial.Server.Controllers
         [HttpPost("{postId}")]
         public async Task<IActionResult> ReactionPost(Guid postId)
         {
-            var currentUser = await _userManager.GetUserAsync(User);
-            if (currentUser == null)
+            var currentUserId = User.GetUserId();
+            if (string.IsNullOrEmpty(currentUserId))
                 return Unauthorized();
 
-            var result = await _reactionService.ReactionPostAsync(currentUser.Id, postId);
+            var result = await _reactionService.ReactionPostAsync(currentUserId, postId);
             return StatusCode(result.StatusCode, new { message = result.Message });
         }
     }
