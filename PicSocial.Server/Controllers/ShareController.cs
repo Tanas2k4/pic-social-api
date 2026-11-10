@@ -1,8 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using PicSocial.Server.DTOs.SharesDto;
-using PicSocial.Server.Models;
+using PicSocial.Server.Extensions;
 using PicSocial.Server.Services.Interfaces;
 
 namespace PicSocial.Server.Controllers
@@ -12,12 +11,10 @@ namespace PicSocial.Server.Controllers
     [Authorize]
     public class ShareController : ControllerBase
     {
-        private readonly UserManager<ApplicationUser> _userManager;
         private readonly IShareService _service;
 
-        public ShareController(UserManager<ApplicationUser> userManager, ApplicationDbContext context, IShareService service)
+        public ShareController(IShareService service)
         {
-            _userManager = userManager;
             _service = service;
         }
 
@@ -40,12 +37,12 @@ namespace PicSocial.Server.Controllers
         [ProducesResponseType(typeof(ShareCreateDto), 200)]
         public async Task<IActionResult> SharePost(Guid postId, [FromForm] ShareDto shareDto)
         {
-            var currentUser = await _userManager.GetUserAsync(User);
-            if (currentUser == null)
+            var currentUserId = User.GetUserId();
+            if (string.IsNullOrEmpty(currentUserId))
                 return Unauthorized(new { message = "You don't have permission" });
 
-            var result = await _service.SharePostAsync(postId, currentUser.Id, shareDto);
-            return StatusCode(result.StatusCode, result.Data);
+            var result = await _service.SharePostAsync(postId, currentUserId, shareDto);
+            return StatusCode(result.StatusCode, result.Success ? result.Data : new { message = result.Message });
         }
 
         /// <summary>
@@ -66,11 +63,11 @@ namespace PicSocial.Server.Controllers
         [HttpDelete("{shareId}")]
         public async Task<IActionResult> DeleteSharePost([FromQuery] Guid postId, Guid shareId)
         {
-            var currentUser = await _userManager.GetUserAsync(User);
-            if (currentUser == null)
+            var currentUserId = User.GetUserId();
+            if (string.IsNullOrEmpty(currentUserId))
                 return Unauthorized();
 
-            var result = await _service.DeleteSharePostAsync(postId, shareId, currentUser.Id);
+            var result = await _service.DeleteSharePostAsync(postId, shareId, currentUserId);
 
             return StatusCode(result.StatusCode, new { message = result.Message });
         }

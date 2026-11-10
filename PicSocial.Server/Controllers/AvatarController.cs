@@ -1,8 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using PicSocial.Server.DTOs.AvatarsDto;
-using PicSocial.Server.Models;
+using PicSocial.Server.Extensions;
 using PicSocial.Server.Services.Interfaces;
 
 namespace PicSocial.Server.Controllers
@@ -12,12 +11,10 @@ namespace PicSocial.Server.Controllers
     [Authorize]
     public class AvatarController : ControllerBase
     {
-        private readonly UserManager<ApplicationUser> _userManager;
         private readonly IAvatarService _avatarService;
 
-        public AvatarController(UserManager<ApplicationUser> userManager, IAvatarService avatarService)
+        public AvatarController(IAvatarService avatarService)
         {
-            _userManager = userManager;
             _avatarService = avatarService;
         }
 
@@ -37,12 +34,12 @@ namespace PicSocial.Server.Controllers
         public async Task<IActionResult> UploadAvatar(
             [FromForm] AvatarUploadDto avatar)
         {
-            var currentUser = await _userManager.GetUserAsync(User);
-            if (currentUser == null)
+            var currentUserId = User.GetUserId();
+            if (string.IsNullOrEmpty(currentUserId))
                 return Unauthorized();
 
             var result = await _avatarService.UploadAvatarAsync(
-                currentUser.Id,
+                currentUserId,
                 avatar.Avatar!
             );
 
@@ -61,11 +58,11 @@ namespace PicSocial.Server.Controllers
         [HttpDelete]
         public async Task<IActionResult> DeleteAvatar()
         {
-            var currentUser = await _userManager.GetUserAsync(User);
-            if (currentUser == null)
+            var currentUserId = User.GetUserId();
+            if (string.IsNullOrEmpty(currentUserId))
                 return Unauthorized();
 
-            var result = await _avatarService.DeleteAvatarAsync(currentUser.Id);
+            var result = await _avatarService.DeleteAvatarAsync(currentUserId);
             return StatusCode(result.StatusCode, new { message = result.Message });
         }
     }

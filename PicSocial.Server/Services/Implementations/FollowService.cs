@@ -91,8 +91,12 @@ namespace PicSocial.Server.Services.Implementations
         }
 
         //Xem danh sách người theo dõi
-        public async Task<List<FollowerItemDto>> GetFollowerAsync(string userId)
+        public async Task<Results<List<FollowerItemDto>>> GetFollowerAsync(string userId)
         {
+            var userExists = await _context.Users.AnyAsync(u => u.Id == userId);
+            if (!userExists)
+                return Results<List<FollowerItemDto>>.NotFound("User not found.");
+
             var followers = await _context.Follows
                 .Where(f => f.FollowedId == userId)
                 .Select(f => new FollowerItemDto
@@ -102,12 +106,17 @@ namespace PicSocial.Server.Services.Implementations
                     FollowerAvatar = f.Follower.AvatarUrl
                 })
                 .ToListAsync();
-            return followers;
+
+            return Results<List<FollowerItemDto>>.Ok(followers);
         }
 
         //Xem danh sách người mà họ đang theo dõi
-        public async Task<List<FollowingItemDto>> GetFollowingAsync(string userId)
+        public async Task<Results<List<FollowingItemDto>>> GetFollowingAsync(string userId)
         {
+            var userExists = await _context.Users.AnyAsync(u => u.Id == userId);
+            if (!userExists)
+                return Results<List<FollowingItemDto>>.NotFound("User not found.");
+
             var following = await _context.Follows
                 .Where(f => f.FollowerId == userId)
                 .Select(f => new FollowingItemDto
@@ -117,7 +126,8 @@ namespace PicSocial.Server.Services.Implementations
                     FollowingAvatar = f.Followed.AvatarUrl
                 })
                 .ToListAsync();
-            return following;
+
+            return Results<List<FollowingItemDto>>.Ok(following);
         }
     }
 }

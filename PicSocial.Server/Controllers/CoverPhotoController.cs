@@ -1,8 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using PicSocial.Server.DTOs.CoverPhotosDto;
-using PicSocial.Server.Models;
+using PicSocial.Server.Extensions;
 using PicSocial.Server.Services.Interfaces;
 
 namespace PicSocial.Server.Controllers
@@ -12,12 +11,10 @@ namespace PicSocial.Server.Controllers
     [Authorize]
     public class CoverPhotoController : ControllerBase
     {
-        private readonly UserManager<ApplicationUser> _userManager;
         private readonly ICoverPhotoService _coverPhotoService;
 
-        public CoverPhotoController(UserManager<ApplicationUser> userManager, ICoverPhotoService coverPhotoService)
+        public CoverPhotoController(ICoverPhotoService coverPhotoService)
         {
-            _userManager = userManager;
             _coverPhotoService = coverPhotoService;
         }
 
@@ -38,12 +35,12 @@ namespace PicSocial.Server.Controllers
         public async Task<IActionResult> UploadPhotoCover(
             [FromForm] CoverPhotoUploadDto coverPhoto)
         {
-            var currentUser = await _userManager.GetUserAsync(User);
-            if (currentUser == null)
+            var currentUserId = User.GetUserId();
+            if (string.IsNullOrEmpty(currentUserId))
                 return Unauthorized();
 
             var result = await _coverPhotoService.UploadPhotoCoverAsync(
-                currentUser.Id,
+                currentUserId,
                 coverPhoto.coverPhoto!
             );
 
@@ -64,11 +61,11 @@ namespace PicSocial.Server.Controllers
         [HttpDelete]
         public async Task<IActionResult> DeletePhotoCover()
         {
-            var currentUser = await _userManager.GetUserAsync(User);
-            if (currentUser == null)
+            var currentUserId = User.GetUserId();
+            if (string.IsNullOrEmpty(currentUserId))
                 return Unauthorized();
 
-            var result = await _coverPhotoService.DeletePhotoCoverAsync(currentUser.Id);
+            var result = await _coverPhotoService.DeletePhotoCoverAsync(currentUserId);
 
             return StatusCode(result.StatusCode, new { message = result.Message });
         }

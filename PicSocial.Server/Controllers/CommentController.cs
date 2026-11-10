@@ -1,8 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using PicSocial.Server.DTOs.CommentsDto;
-using PicSocial.Server.Models;
+using PicSocial.Server.Extensions;
 using PicSocial.Server.Services.Interfaces;
 using PicSocial.Server.Shared;
 
@@ -13,14 +12,10 @@ namespace PicSocial.Server.Controllers
     [Authorize]
     public class CommentController : ControllerBase
     {
-        private readonly UserManager<ApplicationUser> _userManager;
-        private readonly ApplicationDbContext _context;
         private readonly ICommentService _commentService;
 
-        public CommentController(UserManager<ApplicationUser> userManager, ApplicationDbContext context, ICommentService commentService)
+        public CommentController(ICommentService commentService)
         {
-            _userManager = userManager;
-            _context = context;
             _commentService = commentService;
         }
 
@@ -39,11 +34,11 @@ namespace PicSocial.Server.Controllers
         [HttpPost("{postId}")]
         public async Task<IActionResult> CommentPost(Guid postId, [FromBody] CommentDto commentDto)
         {
-            var currentUser = await _userManager.GetUserAsync(User);
-            if (currentUser == null)
+            var currentUserId = User.GetUserId();
+            if (string.IsNullOrEmpty(currentUserId))
                 return Unauthorized();
 
-            var result = await _commentService.CommentPostAsync(postId, currentUser.Id, commentDto.Content, commentDto.ParentCommentId);
+            var result = await _commentService.CommentPostAsync(postId, currentUserId, commentDto.Content, commentDto.ParentCommentId);
             return StatusCode(result.StatusCode, result);
         }
 
@@ -62,11 +57,11 @@ namespace PicSocial.Server.Controllers
         [HttpDelete("{commentId}")]
         public async Task<IActionResult> DeleteComment(Guid commentId)
         {
-            var currentUser = await _userManager.GetUserAsync(User);
-            if (currentUser == null)
+            var currentUserId = User.GetUserId();
+            if (string.IsNullOrEmpty(currentUserId))
                 return Unauthorized();
 
-            var result = await _commentService.DeleteCommentAsync(commentId, currentUser.Id);
+            var result = await _commentService.DeleteCommentAsync(commentId, currentUserId);
             return StatusCode(result.StatusCode, new { message = result.Message });
         }
 
@@ -86,11 +81,11 @@ namespace PicSocial.Server.Controllers
         [HttpPut("{commentId}")]
         public async Task<IActionResult> UpdateComment(Guid commentId, [FromBody] CommentDto commentDto)
         {
-            var currentUser = await _userManager.GetUserAsync(User);
-            if (currentUser == null)
+            var currentUserId = User.GetUserId();
+            if (string.IsNullOrEmpty(currentUserId))
                 return Unauthorized();
 
-            var result = await _commentService.UpdateCommentAsync(commentId, currentUser.Id, commentDto.Content);
+            var result = await _commentService.UpdateCommentAsync(commentId, currentUserId, commentDto.Content);
             return StatusCode(result.StatusCode, result);
         }
 

@@ -1,8 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using PicSocial.Server.DTOs.ProfilesDto;
-using PicSocial.Server.Models;
+using PicSocial.Server.Extensions;
 using PicSocial.Server.Services.Interfaces;
 
 namespace PicSocial.Server.Controllers
@@ -12,12 +11,10 @@ namespace PicSocial.Server.Controllers
     [Authorize] // Chỉ cho phép người dùng đã xác thực truy cập
     public class ProfileController : ControllerBase
     {
-        private readonly UserManager<ApplicationUser> _userManager;
         private readonly IProfileService _profileService;
 
-        public ProfileController(UserManager<ApplicationUser> userManager, IProfileService profileService)
+        public ProfileController(IProfileService profileService)
         {
-            _userManager = userManager;
             _profileService = profileService;
         }
 
@@ -38,11 +35,11 @@ namespace PicSocial.Server.Controllers
         [ProducesResponseType(typeof(ProfileUserDto), 200)]
         public async Task<IActionResult> GetProfileById(string userId)
         {
-            var currentUser = await _userManager.GetUserAsync(User);
-            if (currentUser == null)
+            var currentUserId = User.GetUserId();
+            if (string.IsNullOrEmpty(currentUserId))
                 return Unauthorized();
 
-            var result = await _profileService.GetProfileByIdAsync(currentUser.Id, userId);
+            var result = await _profileService.GetProfileByIdAsync(currentUserId, userId);
             return StatusCode(result.StatusCode, result.Success ? result.Data : new { message = result.Message });
         }
 
@@ -61,11 +58,11 @@ namespace PicSocial.Server.Controllers
         [ProducesResponseType(typeof(ProfileUserDto), 200)]
         public async Task<IActionResult> GetMyProfile()
         {
-            var currentUser = await _userManager.GetUserAsync(User);
-            if (currentUser == null)
+            var currentUserId = User.GetUserId();
+            if (string.IsNullOrEmpty(currentUserId))
                 return Unauthorized();
 
-            var result = await _profileService.GetMyProfileAsync(currentUser.Id);
+            var result = await _profileService.GetMyProfileAsync(currentUserId);
             return StatusCode(result.StatusCode, result.Success ? result.Data : new { message = result.Message });
         }
 
@@ -86,11 +83,11 @@ namespace PicSocial.Server.Controllers
         [ProducesResponseType(typeof(ProfileUserDto), 200)]
         public async Task<IActionResult> UpdateMyProfile([FromBody] ProfileUpdateDto updateProfileDto)
         {
-            var currentUser = await _userManager.GetUserAsync(User);
-            if (currentUser == null)
+            var currentUserId = User.GetUserId();
+            if (string.IsNullOrEmpty(currentUserId))
                 return Unauthorized();
 
-            var result = await _profileService.UpdateMyProfileAsync(currentUser.Id, updateProfileDto);
+            var result = await _profileService.UpdateMyProfileAsync(currentUserId, updateProfileDto);
             return StatusCode(result.StatusCode, result.Success ? result.Data : new { message = result.Message });
         }
     }
