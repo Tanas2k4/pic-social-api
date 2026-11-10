@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
 using PicSocial.Server.DTOs.PostsDto;
@@ -16,7 +16,6 @@ namespace PicSocial.Server.Services.Implementations
         private readonly ApplicationDbContext _context;
         private readonly GoogleCloudStorageService _googleCloudStorageService;
         private readonly UserManager<ApplicationUser> _userManager;
-
         private readonly IPhotoMetadataService _photoMetadataService;
         private readonly IPhotoXmpMetadataService _photoXmpMetadataService;
         public PostService(ApplicationDbContext context, GoogleCloudStorageService googleCloudStorageService, UserManager<ApplicationUser> userManager, IPhotoMetadataService photoMetadataService, IPhotoXmpMetadataService photoXmpMetadataService )
@@ -68,7 +67,7 @@ namespace PicSocial.Server.Services.Implementations
             foreach (var file in files)
             {
                 var objectName = $"Post/{currentUser.Id}/{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
-                var memoryStream = new MemoryStream();
+                using var memoryStream = new MemoryStream();
                 await file.CopyToAsync(memoryStream);
                 memoryStream.Position = 0;
 
@@ -137,17 +136,17 @@ namespace PicSocial.Server.Services.Implementations
             if (currentUser == null)
                 return Result.Unauthorized("User not found");
 
-            //Kiểm tra Post tồn tại và thuộc về user hiện tại
+            //Kiểm tra Post tồn tại
             var post = await _context.Posts
                 .Include(p => p.Photos)
-                .FirstOrDefaultAsync(p => p.PostId == postId && p.UserId == currentUserId);
+                .FirstOrDefaultAsync(p => p.PostId == postId);
             if (post == null)
                 return Result.NotFound("Post not found");
 
-            //Kiểm tra role Admin       
-            var isAdmin = await _userManager.IsInRoleAsync(currentUser!, "Admin");
-            if (!isAdmin && post.UserId != currentUserId)
-                return Result.Forbidden("you don't have permission");
+            //Kiểm tra quyền: chỉ chủ sở hữu hoặc Admin mới có quyền xóa       
+            var isAdmin = await _userManager.IsInRoleAsync(currentUser, "Admin");
+            if (post.UserId != currentUserId && !isAdmin)
+                return Result.Forbidden("You don't have permission to delete this post");
             //Xoa anh tren Google Cloud Storage
             foreach (var photo in post.Photos)
             {

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using PicSocial.Server.DTOs.AuthDto;
 using PicSocial.Server.Models;
@@ -49,7 +49,7 @@ namespace PicSocial.Server.Services.Implementations
             if (user == null || !await _userManager.CheckPasswordAsync(user, dto.Password))
                 return Results<string>.Unauthorized("Invalid Email or Password.");
 
-            var token = GenerateToken(user);
+            var token = await GenerateTokenAsync(user);
 
             //gán avatar mặc định 
             // if (string.IsNullOrEmpty(user.AvatarUrl))
@@ -61,19 +61,20 @@ namespace PicSocial.Server.Services.Implementations
         }
 
         //generate JWT token for login
-        public string GenerateToken(ApplicationUser user)
+        public async Task<string> GenerateTokenAsync(ApplicationUser user)
         {
             var jwtSettings = _configuration.GetSection("Jwt");
 
             var claims = new List<Claim>
             {
+                new Claim(ClaimTypes.NameIdentifier, user.Id),
                 new Claim(JwtRegisteredClaimNames.Sub, user.Id),
-                new Claim(JwtRegisteredClaimNames.Email, user.Email!),
-                new Claim("username", user.UserName!)
+                new Claim(JwtRegisteredClaimNames.Email, user.Email ?? ""),
+                new Claim("username", user.UserName ?? "")
             };
 
-            //Lấy roles của user
-            var roles = _userManager.GetRolesAsync(user).Result;
+            //Lấy roles của user bất đồng bộ
+            var roles = await _userManager.GetRolesAsync(user);
             foreach (var role in roles)
             {
                 claims.Add(new Claim(ClaimTypes.Role, role));
@@ -82,11 +83,14 @@ namespace PicSocial.Server.Services.Implementations
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Key"]!));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
+            var expireMinutesStr = jwtSettings["ExpireMinutes"] ?? jwtSettings["ExpiryInMinutes"];
+            var expireMinutes = double.TryParse(expireMinutesStr, out var m) ? m : 120.0;
+
             var token = new JwtSecurityToken(
                 issuer: jwtSettings["Issuer"],
                 audience: jwtSettings["Audience"],
                 claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(Convert.ToDouble(jwtSettings["ExpireMinutes"])),
+                expires: DateTime.UtcNow.AddMinutes(expireMinutes),
                 signingCredentials: creds
             );
 

@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using PicSocial.Server.DTOs.FollowsDto;
 using PicSocial.Server.Models;
@@ -33,7 +32,7 @@ namespace PicSocial.Server.Services.Implementations
             if (currentUser == null)
                 return Result.NotFound("Current user not found");
             if (currentUserId == followDto.Id)
-                return Result.NotFound("You cannot follow yourself");
+                return Result.Bad("You cannot follow yourself");
 
             var userToFollow = await _userManager.FindByIdAsync(followDto.Id);
             if (userToFollow == null)
@@ -92,39 +91,33 @@ namespace PicSocial.Server.Services.Implementations
         }
 
         //Xem danh sách người theo dõi
-        public async Task<IActionResult> GetFollowerAsync(string userId)
+        public async Task<List<FollowerItemDto>> GetFollowerAsync(string userId)
         {
-            var user = await _userManager.FindByIdAsync(userId);
-            if (user == null)
-                return new NotFoundObjectResult("User not found.");
             var followers = await _context.Follows
                 .Where(f => f.FollowedId == userId)
-                .Select(f => new
+                .Select(f => new FollowerItemDto
                 {
                     FollowerUserName = f.Follower.UserName,
                     FollowerFirstName = f.Follower.FullName,
                     FollowerAvatar = f.Follower.AvatarUrl
                 })
                 .ToListAsync();
-            return new OkObjectResult(followers);
+            return followers;
         }
 
         //Xem danh sách người mà họ đang theo dõi
-        public async Task<IActionResult> GetFollowingAsync(string userId)
+        public async Task<List<FollowingItemDto>> GetFollowingAsync(string userId)
         {
-            var user = await _userManager.FindByIdAsync(userId);
-            if (user == null)
-                return new NotFoundObjectResult("User not found.");
             var following = await _context.Follows
                 .Where(f => f.FollowerId == userId)
-                .Select(f => new
+                .Select(f => new FollowingItemDto
                 {
                     FollowingUserName = f.Followed.UserName,
                     FollowingFirstName = f.Followed.FullName,
                     FollowingAvatar = f.Followed.AvatarUrl
                 })
                 .ToListAsync();
-            return new OkObjectResult(following);
+            return following;
         }
     }
 }

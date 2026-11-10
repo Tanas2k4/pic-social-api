@@ -1,4 +1,4 @@
-﻿namespace PicSocial.Server.Shared
+namespace PicSocial.Server.Shared
 {
     public class Results<T> : Result
     {
@@ -11,9 +11,9 @@
         }
 
         public static Results<T> Ok(T data, string message = "") => new Results<T>(true, message, 200, data);
-        public static Results<T> NotFound(string message = "") => new Results<T>(false, message, 404);
-        public static Results<T> Bad(string message = "") => new Results<T>(false, message, 400);
-        public static Results<T> Forbidden(string message = "") => new Results<T>(false, message, 403);
-        public static Results<T> Unauthorized(string message = "") => new Results<T>(false, message, 401);
+        public static new Results<T> NotFound(string message = "") => new Results<T>(false, message, 404);
+        public static new Results<T> Bad(string message = "") => new Results<T>(false, message, 400);
+        public static new Results<T> Forbidden(string message = "") => new Results<T>(false, message, 403);
+        public static new Results<T> Unauthorized(string message = "") => new Results<T>(false, message, 401);
     }
 }

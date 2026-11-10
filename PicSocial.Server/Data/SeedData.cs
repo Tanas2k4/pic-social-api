@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using PicSocial.Server.Models;
 
 namespace PicSocial.Server.Data

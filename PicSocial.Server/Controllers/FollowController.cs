@@ -104,12 +104,13 @@ namespace PicSocial.Server.Controllers
         /// </returns>
         /// <response code="200">Returns list of followers</response>
         /// <response code="404">User not found.</response>
+        [ProducesResponseType(typeof(List<FollowerItemDto>), 200)]
         [HttpGet("followers/{id}")]
         public async Task<IActionResult> GetFollowers(string id)
         {
             var user = await _userManager.FindByIdAsync(id);
             if (user == null)
-                return NotFound("User not found.");
+                return NotFound(new { message = "User not found." });
 
             var result = await _service.GetFollowerAsync(id);
             return Ok(result);
@@ -125,12 +126,13 @@ namespace PicSocial.Server.Controllers
         /// </returns>
         /// <response code="200">Returns list of followed users</response>
         /// <response code="404">User not found.</response>
+        [ProducesResponseType(typeof(List<FollowingItemDto>), 200)]
         [HttpGet("following/{id}")]
         public async Task<IActionResult> GetFollowing(string id)
         {
             var user = await _userManager.FindByIdAsync(id);
             if (user == null)
-                return NotFound("User not found.");
+                return NotFound(new { message = "User not found." });
 
             var result = await _service.GetFollowingAsync(id);
             return Ok(result);
