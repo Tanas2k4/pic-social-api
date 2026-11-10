@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using PicSocial.Server.DTOs.PhotosDto;
 using PicSocial.Server.Models;
@@ -23,9 +23,15 @@ namespace PicSocial.Server.Services.Implementations
             var currentUser = await _userManager.FindByIdAsync(currentUserId);
             if (currentUser == null)
                 return Result.Unauthorized("User not found");
+
             var photo = await _context.Photos.FirstOrDefaultAsync(p => p.PhotoId == photoId);
             if (photo == null)
-                return Result.NotFound("Not found");
+                return Result.NotFound("Photo not found");
+
+            // Kiểm tra quyền sở hữu ảnh (tránh lỗ hổng IDOR)
+            if (photo.UserId != currentUserId)
+                return Result.Forbidden("You do not have permission to update this photo");
+
             if (dto.IsPublic.HasValue)
                 photo.IsPublic = dto.IsPublic.Value;
 

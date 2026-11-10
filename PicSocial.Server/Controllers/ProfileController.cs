@@ -43,7 +43,7 @@ namespace PicSocial.Server.Controllers
                 return Unauthorized();
 
             var result = await _profileService.GetProfileByIdAsync(currentUser.Id, userId);
-            return StatusCode(result.StatusCode, result.Data);
+            return StatusCode(result.StatusCode, result.Success ? result.Data : new { message = result.Message });
         }
 
         /// <summary>
@@ -66,7 +66,7 @@ namespace PicSocial.Server.Controllers
                 return Unauthorized();
 
             var result = await _profileService.GetMyProfileAsync(currentUser.Id);
-            return StatusCode(result.StatusCode, result.Data);
+            return StatusCode(result.StatusCode, result.Success ? result.Data : new { message = result.Message });
         }
 
         /// <summary>
@@ -91,7 +91,7 @@ namespace PicSocial.Server.Controllers
                 return Unauthorized();
 
             var result = await _profileService.UpdateMyProfileAsync(currentUser.Id, updateProfileDto);
-            return StatusCode(result.StatusCode, result.Data);
+            return StatusCode(result.StatusCode, result.Success ? result.Data : new { message = result.Message });
         }
     }
 }

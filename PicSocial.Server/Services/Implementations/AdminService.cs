@@ -1,7 +1,8 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using PicSocial.Server.DTOs.AdminDto;
 using PicSocial.Server.Models;
+using PicSocial.Server.Models.Entities;
 using PicSocial.Server.Services.Interfaces;
 
 namespace PicSocial.Server.Services.Implementations
@@ -17,12 +18,18 @@ namespace PicSocial.Server.Services.Implementations
         }
 
         //get all users
-        public async Task<IActionResult> GetAllUserAsync()
+        public async Task<List<UserSummaryDto>> GetAllUserAsync()
         {
             var users = await _context.Users
-                .Select(u => new { u.AvatarUrl, u.FullName, u.UserName, u.Email })
+                .Select(u => new UserSummaryDto
+                {
+                    AvatarUrl = u.AvatarUrl,
+                    FullName = u.FullName,
+                    UserName = u.UserName,
+                    Email = u.Email
+                })
                 .ToListAsync();
-            return new OkObjectResult(users);
+            return users;
         }
 
         //delete user
@@ -33,7 +40,6 @@ namespace PicSocial.Server.Services.Implementations
             if(currentUser == null)
                 throw new UnauthorizedAccessException("User not found");
                 
-            // hoặc truyền từ controller
             var isAdmin = await _userManager.IsInRoleAsync(currentUser, "Admin");
 
             if (targetUserId != currentUserId && !isAdmin)
@@ -43,6 +49,7 @@ namespace PicSocial.Server.Services.Implementations
                 .Include(u => u.Posts)
                 .Include(u => u.FollowerFollows)   // người follow user này
                 .Include(u => u.FollowedFollows)   // user này đang follow ai
+                .Include(u => u.Albums)
                 .FirstOrDefaultAsync(u => u.Id == targetUserId);
 
             if (user == null)
@@ -55,7 +62,7 @@ namespace PicSocial.Server.Services.Implementations
                 // 1. Cập nhật count cho những người bị ảnh hưởng
                 if (user.FollowedFollows.Any())
                 {
-                    var followedUserIds = user.FollowedFollows.Select(f => f.FollowerId);
+                    var followedUserIds = user.FollowedFollows.Select(f => f.FollowerId).ToList();
                     await _context.Users
                         .Where(u => followedUserIds.Contains(u.Id))
                         .ExecuteUpdateAsync(u => u
@@ -64,17 +71,20 @@ namespace PicSocial.Server.Services.Implementations
 
                 if (user.FollowerFollows.Any())
                 {
-                    var followerUserIds = user.FollowerFollows.Select(f => f.FollowedId);
+                    var followerUserIds = user.FollowerFollows.Select(f => f.FollowedId).ToList();
                     await _context.Users
                         .Where(u => followerUserIds.Contains(u.Id))
                         .ExecuteUpdateAsync(u => u
                             .SetProperty(x => x.FollowersCount, x => x.FollowersCount - 1));
                 }
 
-                // 2. XÓA USER → EF Core + Cascade sẽ tự động xóa:
+                // 2. Xóa các quan hệ tránh lỗi FK Constraint
+                _context.Follows.RemoveRange(user.FollowedFollows);
+                _context.Follows.RemoveRange(user.FollowerFollows);
+                _context.Albums.RemoveRange(user.Albums);
+
+                // 3. XÓA USER → EF Core + Cascade sẽ tự động xóa:
                 //    Posts, Photos, Reactions, Comments, Shares, Reports...
-                //    Follow → NULL (do ClientSetNull)
-                //    Album → UserId = NULL (do ClientSetNull)
                 _context.Users.Remove(user);
                 await _context.SaveChangesAsync();
 
@@ -89,27 +99,27 @@ namespace PicSocial.Server.Services.Implementations
         }
 
         //xem tất cả report
-        public async Task<IActionResult> GetAllReportsAsync()
+        public async Task<List<Report>> GetAllReportsAsync()
         {
             var reports = await _context.Reports
                 .ToListAsync();
-            return new OkObjectResult(reports);
+            return reports;
         }
 
         //Xem tất cả report của 1 bài viết
-        public async Task<IActionResult> GetReportByIdAsync(Guid postId)
+        public async Task<List<Report>> GetReportByIdAsync(Guid postId)
         {
             var reports = await _context.Reports
                 .Where(p => p.PostId == postId)
                 .ToListAsync();
-            return new OkObjectResult(reports);
+            return reports;
         }
     
         //tổng số bài viết
-        public async Task<IActionResult> TotalPostAsync()
+        public async Task<int> TotalPostAsync()
         {
             var totalPosts = await _context.Posts.CountAsync();
-            return new OkObjectResult(totalPosts);
+            return totalPosts;
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using PicSocial.Server.DTOs.PhotosDto;
 using PicSocial.Server.Models;
@@ -28,11 +29,14 @@ namespace PicSocial.Server.Controllers
         /// <returns>
         /// 200 OK: Simple object with success message.<br/>
         /// 401 Unauthorized: If user is not authenticated or not found.<br/>
+        /// 403 Forbidden: If user is not the owner of the photo.<br/>
         /// 404 Not Found: If the photo does not exist.
         /// </returns>
         /// <response code="200">update successfully</response>
         /// <response code="401">User not found</response>
+        /// <response code="403">You do not have permission to update this photo</response>
         /// <response code="404">Not found</response>
+        [Authorize]
         [HttpPatch("{photoId}")]
         public async Task<IActionResult> UpdatePhoto(Guid photoId, [FromBody] PhotoUpdateDto dto)
         {
@@ -51,14 +55,18 @@ namespace PicSocial.Server.Controllers
         /// <param name="userId">The ID of the user who owns the photo (query parameter).</param>
         /// <returns>
         /// 200 OK: Full PhotoDetailDto object containing photo details.<br/>
-        /// 404 Not Found: If the photo does not exist or does not belong to the specified user (returns null data).
+        /// 404 Not Found: If the photo does not exist or does not belong to the specified user.
         /// </returns>
-        /// <response code="404">Photo not found (data is null)</response>
+        /// <response code="404">Photo not found</response>
         [ProducesResponseType(typeof(PhotoDetailDto), 200)] 
         [HttpGet("{photoId}")]
         public async Task<IActionResult> GetPhotoAsync(Guid photoId, [FromQuery] string userId)
         {
             var result = await _photoService.GetPhotoByIdAsync(userId, photoId);
+            if (!result.Success)
+            {
+                return StatusCode(result.StatusCode, new { message = result.Message });
+            }
             return StatusCode(result.StatusCode, result.Data);
         }
     }

@@ -38,14 +38,14 @@ namespace PicSocial.Server.Controllers
         [HttpPost]
         [Consumes("multipart/form-data")]
         [ProducesResponseType(typeof(PostResponseDto), 200)]
-        public async Task<IActionResult> UploadPhoto([FromForm] string title, [FromForm] List<IFormFile> files, [FromForm] Guid? licenseId)
+        public async Task<IActionResult> UploadPhoto([FromForm] string? title, [FromForm] List<IFormFile> files, [FromForm] Guid? licenseId)
         {
             var currentUser = await _userManager.GetUserAsync(User);
             if (currentUser == null)
                 return Unauthorized();
 
             var result = await _postService.UploadPhotoAsync(currentUser.Id, title, files, licenseId);
-            return StatusCode(result.StatusCode, result.Data);
+            return StatusCode(result.StatusCode, result.Success ? result.Data : new { message = result.Message });
         }
 
         /// <summary>
@@ -100,7 +100,7 @@ namespace PicSocial.Server.Controllers
                 return Unauthorized();
 
             var result = await _postService.UpdatePostAsync(postId, currentUser.Id, updatePostDto.Title, updatePostDto.LicenseId);
-            return StatusCode(result.StatusCode, result.Data);
+            return StatusCode(result.StatusCode, result.Success ? result.Data : new { message = result.Message });
         }
 
         /// <summary>
@@ -122,7 +122,7 @@ namespace PicSocial.Server.Controllers
                 return NotFound("User not found.");
 
             var results = await _postService.GetPostsByUserAsync(userId);
-            return StatusCode(results.StatusCode, results.Data);
+            return StatusCode(results.StatusCode, results.Success ? results.Data : new { message = results.Message });
         }
 
         /// <summary>
@@ -141,7 +141,7 @@ namespace PicSocial.Server.Controllers
         public async Task<IActionResult> GetPost(Guid postId)
         {
             var result = await _postService.GetPostByIdAsync(postId);
-            return StatusCode(result.StatusCode, result.Data);
+            return StatusCode(result.StatusCode, result.Success ? result.Data : new { message = result.Message });
         }
     }
 }

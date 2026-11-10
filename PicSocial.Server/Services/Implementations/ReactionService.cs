@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using PicSocial.Server.Models;
 using PicSocial.Server.Models.Entities;
@@ -29,7 +29,8 @@ namespace PicSocial.Server.Services.Implementations
             if (reaction != null)
             {
                 _context.Reactions.Remove(reaction);
-                post.ReactionCount--;
+                if (post.ReactionCount > 0)
+                    post.ReactionCount--;
                 await _context.SaveChangesAsync();
                 return Result.Ok("unLiked");
             }

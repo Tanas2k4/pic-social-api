@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using PicSocial.Server.DTOs.SharesDto;
 using PicSocial.Server.Models;
@@ -87,11 +87,12 @@ namespace PicSocial.Server.Services.Implementations
 
             var isAdmin = await _userManager.IsInRoleAsync(currentUser, "Admin");
             if (share.UserId != currentUserId && !isAdmin)
-                return Result.Unauthorized("Unauthorized to delete this share");
+                return Result.Forbidden("Unauthorized to delete this share");
            
             _context.Shares.Remove(share);
             
-            post.ShareCount--;
+            if (post.ShareCount > 0)
+                post.ShareCount--;
             await _context.SaveChangesAsync();
             return Result.Ok("Share deleted successfully");
         }

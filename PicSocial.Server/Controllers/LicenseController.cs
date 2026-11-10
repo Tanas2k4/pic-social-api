@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PicSocial.Server.Services.Interfaces;
 
@@ -22,7 +22,7 @@ namespace PicSocial.Server.Controllers
             var result = await _licenseService.GetAllLicensesAsync();
             if (result == null || !result.Any())
             {
-                return NotFound(new { messsage = "No licenses found." });
+                return NotFound(new { message = "No licenses found." });
             }
             return Ok(result);
         }

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using PicSocial.Server.DTOs.CommentsDto;
 using PicSocial.Server.Models;
@@ -103,7 +103,7 @@ namespace PicSocial.Server.Services.Implementations
                 .Include(c => c.ChildComments)
                 .FirstOrDefaultAsync(c => c.CommentId == commentId && c.UserId == currentUserId);
             if (comment == null || comment.ParentCommentId != null)
-                return Results<CommentUpdateDto>.NotFound("Comment not found or you do't have permission");
+                return Results<CommentUpdateDto>.NotFound("Comment not found or you don't have permission");
 
             comment.Content = newContent;
             comment.UpdatedDate = DateTimeOffset.Now;

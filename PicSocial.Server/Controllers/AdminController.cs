@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using PicSocial.Server.DTOs.AdminDto;
 using PicSocial.Server.Models;
+using PicSocial.Server.Models.Entities;
 using PicSocial.Server.Services.Interfaces;
 
 namespace PicSocial.Server.Controllers
@@ -29,6 +31,7 @@ namespace PicSocial.Server.Controllers
         /// <response code="200">Returns list of user summaries</response>
         /// <response code="401">Unauthorized (not authenticated)</response>
         /// <response code="403">Forbidden (authenticated but not Admin)</response>
+        [ProducesResponseType(typeof(List<UserSummaryDto>), 200)]
         [HttpGet("users")]
         public async Task<IActionResult> GetAllUser()
         {
@@ -45,12 +48,14 @@ namespace PicSocial.Server.Controllers
         /// 200 OK: true (deletion successful).<br/>
         /// 400 Bad Request: Deletion failed (with error message).<br/>
         /// 401 Unauthorized: If current user not authenticated.<br/>
-        /// 403 Forbidden: If not Admin and trying to delete another user.
+        /// 403 Forbidden: If not Admin and trying to delete another user.<br/>
+        /// 404 Not Found: If the target user does not exist.
         /// </returns>
         /// <response code="200">true</response>
         /// <response code="400">delete user failed</response>
         /// <response code="401">Unauthorized</response>
         /// <response code="403">Forbidden (not authorized to delete this user)</response>
+        /// <response code="404">User not found</response>
         [HttpDelete("user/{userId}")]
         public async Task<IActionResult> DeleteUser(string userId)
         {
@@ -58,13 +63,25 @@ namespace PicSocial.Server.Controllers
             if (currentUser == null)
                 return Unauthorized();
 
-            var result = await _adminService.DeleteUserAsync(userId, currentUser.Id);
-            if (!result)
+            try
             {
-                return BadRequest(new { message = "Delete user failed" });
+                var result = await _adminService.DeleteUserAsync(userId, currentUser.Id);
+                return Ok(new { success = result, message = "User deleted successfully" });
             }
-            return Ok(result);
+            catch (KeyNotFoundException)
+            {
+                return NotFound(new { message = "User not found" });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(403, new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
+
         /// <summary>
         /// Retrieves all reports submitted in the system (Admin only).
         /// </summary>
@@ -74,6 +91,7 @@ namespace PicSocial.Server.Controllers
         /// <response code="200">Returns list of all reports</response>
         /// <response code="401">Unauthorized</response>
         /// <response code="403">Forbidden (not Admin)</response>
+        [ProducesResponseType(typeof(List<Report>), 200)]
         [HttpGet("reports")]
         public async Task<IActionResult> GetAllReports()
         {
@@ -91,6 +109,7 @@ namespace PicSocial.Server.Controllers
         /// <response code="200">Returns list of reports for the post</response>
         /// <response code="401">Unauthorized</response>
         /// <response code="403">Forbidden (not Admin)</response>
+        [ProducesResponseType(typeof(List<Report>), 200)]
         [HttpGet("reports/{postId}")]
         public async Task<IActionResult> GetReportById(Guid postId)
         {
@@ -107,6 +126,7 @@ namespace PicSocial.Server.Controllers
         /// <response code="200">Returns total post count</response>
         /// <response code="401">Unauthorized</response>
         /// <response code="403">Forbidden (not Admin)</response>
+        [ProducesResponseType(typeof(int), 200)]
         [HttpGet("posts")]
         public async Task<IActionResult> TotalPost()
         {

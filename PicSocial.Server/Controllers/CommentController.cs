@@ -51,7 +51,6 @@ namespace PicSocial.Server.Controllers
         /// Deletes a comment and its replies. Only the comment owner or post owner can delete.
         /// </summary>
         /// <param name="commentId">The ID of the comment to delete.</param>
-        /// <param name="postId">The ID of the post (query parameter).</param>
         /// <returns>
         /// 200 OK: Simple object with success message.<br/>
         /// 401, 403, 404: Simple object with error message.
@@ -61,7 +60,7 @@ namespace PicSocial.Server.Controllers
         /// <response code="403">You cannot delete this comment</response>
         /// <response code="404">Comment not found</response>
         [HttpDelete("{commentId}")]
-        public async Task<IActionResult> DeleteComment(Guid commentId, [FromQuery] Guid postId)
+        public async Task<IActionResult> DeleteComment(Guid commentId)
         {
             var currentUser = await _userManager.GetUserAsync(User);
             if (currentUser == null)
@@ -76,7 +75,6 @@ namespace PicSocial.Server.Controllers
         /// Only the comment owner can update it.
         /// </summary>
         /// <param name="commentId">The ID of the comment to update.</param>
-        /// <param name="postId">The ID of the post (query parameter).</param>
         /// <param name="commentDto">New comment content.</param>
         /// <returns>
         /// 200 OK: Full result object containing updated comment details.<br/>
@@ -86,7 +84,7 @@ namespace PicSocial.Server.Controllers
         /// <response code="404">Comment not found or you don't have permission</response>
         [ProducesResponseType(typeof(Results<CommentUpdateDto>), 200)]
         [HttpPut("{commentId}")]
-        public async Task<IActionResult> UpdateComment(Guid commentId, [FromQuery] Guid postId, [FromBody] CommentDto commentDto)
+        public async Task<IActionResult> UpdateComment(Guid commentId, [FromBody] CommentDto commentDto)
         {
             var currentUser = await _userManager.GetUserAsync(User);
             if (currentUser == null)
@@ -103,7 +101,7 @@ namespace PicSocial.Server.Controllers
         /// <returns>
         /// 200 OK: Direct list of CommentPostDto (with nested replies).<br/>
         /// If no comments, returns empty array [].<br/>
-        /// Note: Errors (e.g., post not found) are not currently handled — consider adding check.
+        /// Note: Errors (e.g., post not found) are not currently handled â€” consider adding check.
         /// </returns>
         /// <response code="200">Returns array of CommentPostDto</response>
         [HttpGet("{postId}")]
