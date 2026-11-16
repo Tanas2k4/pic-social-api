@@ -1,14 +1,17 @@
 import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:like_button/like_button.dart';
+import 'package:solar_icons/solar_icons.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/widgets/app_toast.dart';
+import '../../../../core/widgets/friend_badge_avatar.dart';
+import '../../../../core/widgets/friendship_icons.dart';
 import '../../data/models/post_item_model.dart';
 import 'comment_bottom_sheet.dart';
+import 'post_quick_action_dialog.dart';
 
 class PostCard extends StatefulWidget {
   final PostItemModel post;
@@ -16,6 +19,8 @@ class PostCard extends StatefulWidget {
   final Function(FriendshipStatus newStatus)? onFriendshipChanged;
   final bool isPureViewMode;
   final VoidCallback? onTogglePureView;
+  final VoidCallback? onDeletePost;
+  final VoidCallback? onHidePost;
 
   const PostCard({
     super.key,
@@ -24,6 +29,8 @@ class PostCard extends StatefulWidget {
     this.onFriendshipChanged,
     this.isPureViewMode = false,
     this.onTogglePureView,
+    this.onDeletePost,
+    this.onHidePost,
   });
 
   @override
@@ -42,26 +49,14 @@ class _PostCardState extends State<PostCard> {
   }
 
   Widget _buildPersonWithArrowIcon({Color color = Colors.white, double size = 20}) {
-    return SizedBox(
-      width: size * 1.35,
-      height: size,
-      child: Stack(
-        alignment: Alignment.centerLeft,
-        children: [
-          Icon(Icons.person_rounded, color: color, size: size),
-          Positioned(
-            right: 0,
-            bottom: 1,
-            child: Icon(Icons.arrow_forward_rounded, color: color, size: size * 0.65),
-          ),
-        ],
-      ),
-    );
+    return FriendshipIcons.personWithArrow(color: color, size: size);
   }
 
   Widget _buildFriendshipIcon(BuildContext context) {
-    // Ẩn icon bên phải khi đã là bạn bè (vì đã có dấu tích xác nhận ngay trên Avatar)
-    if (widget.post.friendshipStatus == FriendshipStatus.friends) {
+    // Ẩn icon bên phải khi là bài của chính mình hoặc đã là bạn bè (vì đã có dấu tích xác nhận ngay trên Avatar)
+    if (widget.post.userId == 'current-user' ||
+        widget.post.authorUserName == 'you' ||
+        widget.post.friendshipStatus == FriendshipStatus.friends) {
       return const SizedBox.shrink();
     }
 
@@ -77,7 +72,7 @@ class _PostCardState extends State<PostCard> {
       case FriendshipStatus.none:
       default:
         iconWidget = const Icon(
-          Icons.person_add_rounded,
+          SolarIconsOutline.userPlusRounded,
           color: Colors.white,
           size: 20,
         );
@@ -160,6 +155,19 @@ class _PostCardState extends State<PostCard> {
                     behavior: HitTestBehavior.opaque,
                     // CHẠM NHẸ VÀO ẢNH ĐỂ BẬT/TẮT XEM TRỌN VẸN
                     onTap: widget.onTogglePureView,
+                    // NHẤN GIỮ ĐỂ MỞ QUICK ACTION POP-UP (PEEK & POP / MENU THAO TÁC NHANH)
+                    onLongPress: () {
+                      final activeUrl = post.photoUrls.isNotEmpty && _currentPhotoIndex < post.photoUrls.length
+                          ? post.photoUrls[_currentPhotoIndex]
+                          : post.photoUrl;
+                      PostQuickActionDialog.show(
+                        context,
+                        post: post,
+                        activePhotoUrl: activeUrl,
+                        onDelete: widget.onDeletePost,
+                        onHide: widget.onHidePost,
+                      );
+                    },
                     child: Stack(
                       fit: StackFit.expand,
                       children: [
@@ -223,38 +231,10 @@ class _PostCardState extends State<PostCard> {
                                   color: AppColors.cardOverlay,
                                   child: Row(
                                     children: [
-                                      Stack(
-                                        clipBehavior: Clip.none,
-                                        children: [
-                                          CircleAvatar(
-                                            radius: 17,
-                                            backgroundImage: post.authorAvatarUrl != null && post.authorAvatarUrl!.isNotEmpty
-                                                ? CachedNetworkImageProvider(post.authorAvatarUrl!)
-                                                : null,
-                                            child: post.authorAvatarUrl == null || post.authorAvatarUrl!.isEmpty
-                                                ? const Icon(Icons.person, color: Colors.white, size: 20)
-                                                : null,
-                                          ),
-                                          // DẤU TÍCH XÁC NHẬN BẠN BÈ NGAY TRÊN AVATAR
-                                          if (post.friendshipStatus == FriendshipStatus.friends)
-                                            Positioned(
-                                              right: -2,
-                                              bottom: -2,
-                                              child: Container(
-                                                padding: const EdgeInsets.all(2.5),
-                                                decoration: BoxDecoration(
-                                                  color: AppColors.primaryOlive, // Tông màu Retro Olive #6B8E23
-                                                  shape: BoxShape.circle,
-                                                  border: Border.all(color: Colors.white, width: 1.5),
-                                                ),
-                                                child: const Icon(
-                                                  Icons.check,
-                                                  color: Colors.white,
-                                                  size: 10,
-                                                ),
-                                              ),
-                                            ),
-                                        ],
+                                      FriendBadgeAvatar(
+                                        avatarUrl: post.authorAvatarUrl,
+                                        isFriend: post.friendshipStatus == FriendshipStatus.friends,
+                                        radius: 17,
                                       ),
                                       const SizedBox(width: 10),
                                       Expanded(
@@ -395,7 +375,7 @@ class _PostCardState extends State<PostCard> {
                     likeCountAnimationType: LikeCountAnimationType.none,
                     likeBuilder: (bool isLiked) {
                       return Icon(
-                        isLiked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                        isLiked ? SolarIconsBold.heart : SolarIconsOutline.heart,
                         color: isLiked ? Colors.redAccent : Colors.white,
                         size: 26,
                       );
@@ -424,7 +404,7 @@ class _PostCardState extends State<PostCard> {
                     behavior: HitTestBehavior.opaque,
                     child: Row(
                       children: [
-                        const Icon(Icons.chat_bubble_outline_rounded, color: Colors.white, size: 24),
+                        const Icon(SolarIconsOutline.chatRoundDots, color: Colors.white, size: 24),
                         const SizedBox(width: 6),
                         Text(
                           '${post.commentCount}',
@@ -446,14 +426,14 @@ class _PostCardState extends State<PostCard> {
                       AppToast.showSuccess(
                         context,
                         'Đã sao chép liên kết chia sẻ khoảnh khắc!',
-                        icon: Icons.link_rounded,
+                        icon: SolarIconsBold.linkRound,
                       );
                     },
                     behavior: HitTestBehavior.opaque,
                     child: Row(
                       children: [
                         const Icon(
-                          CupertinoIcons.arrowshape_turn_up_right,
+                          SolarIconsOutline.forward_2,
                           color: Colors.white,
                           size: 23,
                         ),

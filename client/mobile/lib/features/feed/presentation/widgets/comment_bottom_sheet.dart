@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:solar_icons/solar_icons.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import '../../../../core/constants/app_colors.dart';
 import '../../data/models/post_item_model.dart';
@@ -322,7 +323,7 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
               padding: const EdgeInsets.fromLTRB(20, 8, 16, 12),
               child: Row(
                 children: [
-                  const Icon(Icons.chat_bubble_rounded, color: AppColors.primaryYellow, size: 20),
+                  const Icon(SolarIconsBold.chatRoundDots, color: AppColors.primaryYellow, size: 20),
                   const SizedBox(width: 8),
                   Text(
                     'Bình luận (${_comments.length})',
@@ -342,7 +343,7 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                         color: Colors.white.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.close_rounded, color: Colors.white70, size: 18),
+                      child: const Icon(SolarIconsOutline.closeCircle, color: Colors.white70, size: 18),
                     ),
                   ),
                 ],
@@ -571,7 +572,7 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                           ],
                         ),
                         child: const Center(
-                          child: Icon(Icons.send_rounded, color: Colors.black, size: 20),
+                          child: Icon(SolarIconsBold.plain, color: Colors.black, size: 20),
                         ),
                       ),
                     ),

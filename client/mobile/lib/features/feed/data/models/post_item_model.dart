@@ -15,6 +15,7 @@ class PostItemModel {
   final DateTime createdAt;
   final String photoUrl;
   final List<String> photoUrls;
+  final String? albumTitle;
   int likeCount;
   int commentCount;
   int shareCount;
@@ -28,6 +29,7 @@ class PostItemModel {
     this.authorFullName,
     this.authorAvatarUrl,
     this.title,
+    this.albumTitle,
     required this.createdAt,
     required this.photoUrl,
     List<String>? photoUrls,
@@ -60,6 +62,7 @@ class PostItemModel {
       authorFullName: json['authorFullName'],
       authorAvatarUrl: json['authorAvatarUrl'],
       title: json['title'],
+      albumTitle: json['albumTitle'] ?? json['albumName'],
       createdAt: DateTime.parse(json['createdDate']),
       photoUrl: firstPhotoUrl,
       photoUrls: photos,

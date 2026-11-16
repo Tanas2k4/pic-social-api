@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:solar_icons/solar_icons.dart';
+import '../../../../core/widgets/app_button.dart';
 
 class FeedHeader extends StatelessWidget {
   final VoidCallback onSettingsTap;
@@ -17,67 +19,30 @@ class FeedHeader extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        // 1. Nút Cài đặt (Settings) - Đổi từ Nút Bạn bè
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.15),
-            shape: BoxShape.circle,
-          ),
-          child: IconButton(
-            icon: const Icon(Icons.settings_outlined, color: Colors.white, size: 22),
-            onPressed: onSettingsTap,
-          ),
+        // 1. Nút Cài đặt (Settings) - Xúc giác nảy lò xo & viền bắt sáng
+        AppIconButton(
+          onPressed: onSettingsTap,
+          icon: const Icon(SolarIconsOutline.settings, color: Colors.white, size: 21),
+          tooltip: 'Cài đặt',
+          size: 42,
         ),
 
-        // 2. Nút Camera "New Post"
-        GestureDetector(
-          onTap: onNewPostTap,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.18),
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(
-                color: Colors.white.withValues(alpha: 0.88),
-                width: 2.2,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.white.withValues(alpha: 0.10),
-                  blurRadius: 10,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: const Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.camera_alt_rounded, color: Colors.white, size: 20),
-                SizedBox(width: 6),
-                Text(
-                  'Đăng bài',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.2,
-                    color: Colors.white,
-                  ),
-                ),
-              ],
-            ),
-          ),
+        // 2. Nút Camera "Đăng bài" ở giữa - Tactile Button
+        AppButton.secondary(
+          onPressed: onNewPostTap,
+          text: 'Đăng bài',
+          icon: const Icon(SolarIconsBold.camera, color: Colors.white, size: 19),
+          height: 40,
+          size: AppButtonSize.medium,
+          borderRadius: BorderRadius.circular(20),
         ),
 
-        // 3. Nút Profile (Cá nhân)
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.15),
-            shape: BoxShape.circle,
-          ),
-          child: IconButton(
-            icon: const Icon(Icons.person_outline_rounded, color: Colors.white, size: 22),
-            onPressed: onProfileTap,
-          ),
+        // 3. Nút Profile (Cá nhân) - Xúc giác nảy lò xo & viền bắt sáng
+        AppIconButton(
+          onPressed: onProfileTap,
+          icon: const Icon(SolarIconsOutline.user, color: Colors.white, size: 21),
+          tooltip: 'Trang cá nhân',
+          size: 42,
         ),
       ],
     );

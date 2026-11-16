@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:preload_page_view/preload_page_view.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/widgets/app_toast.dart';
+import '../../../../core/widgets/viewfinder_background.dart';
 import '../../data/models/post_item_model.dart';
-import '../widgets/feed_header.dart';
+import '../widgets/feed_bottom_bar.dart';
 import '../widgets/post_card.dart';
 import '../widgets/feed_filter_bar.dart';
 import '../widgets/feed_grid_view.dart';
 import '../../../camera/presentation/screens/camera_capture_screen.dart';
+import '../../../friends/presentation/screens/friends_screen.dart';
+import '../../../notifications/presentation/screens/notifications_screen.dart';
 
 class FeedScreen extends StatefulWidget {
   const FeedScreen({super.key});
@@ -19,7 +23,9 @@ class FeedScreen extends StatefulWidget {
 }
 
 class _FeedScreenState extends State<FeedScreen> {
-  late PreloadPageController _pageController;
+  late final PreloadPageController _pageController;
+  late final PageController _horizontalController;
+  int _currentHorizontalPage = 1; // 0: Friends, 1: Feed, 2: Notifications
 
   // Trạng thái bộ lọc
   bool _isExploreActive = false;
@@ -30,8 +36,14 @@ class _FeedScreenState extends State<FeedScreen> {
   // Theo dõi cử chỉ chụm 2 ngón tay (Pinch to zoom)
   double _currentScale = 1.0;
 
-  // Danh sách bạn bè để hiển thị dải avatar
+  // Danh sách bạn bè để hiển thị dải avatar (bao gồm Bạn để tiện lọc xem lại ảnh của mình)
   final List<FriendFilterItem> _friends = const [
+    FriendFilterItem(
+      userId: 'current-user',
+      name: 'Bạn',
+      avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200',
+      hasNewPost: true,
+    ),
     FriendFilterItem(
       userId: 'user-2',
       name: 'Minh Anh',
@@ -52,8 +64,29 @@ class _FeedScreenState extends State<FeedScreen> {
     ),
   ];
 
-  // Toàn bộ dữ liệu bài đăng mẫu (gồm cả bài của bạn bè và bài khám phá cộng đồng)
+  // Toàn bộ dữ liệu bài đăng mẫu (gồm cả bài của chính bạn, bạn bè và bài khám phá cộng đồng)
   final List<PostItemModel> _allPosts = [
+    // BÀI ĐĂNG CỦA CHÍNH BẠN (current-user)
+    PostItemModel(
+      postId: 'my-post-1',
+      userId: 'current-user',
+      authorUserName: 'you',
+      authorFullName: 'Bạn',
+      authorAvatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200',
+      title: 'Khoảnh khắc chiều nay tại quán quen ☕✨',
+      createdAt: DateTime.now().subtract(const Duration(minutes: 15)),
+      photoUrl: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=1080',
+      photoUrls: const [
+        'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=1080',
+        'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=1080',
+      ],
+      likeCount: 18,
+      commentCount: 4,
+      shareCount: 2,
+      isLikedByMe: false,
+      friendshipStatus: FriendshipStatus.friends,
+    ),
+
     // BÀI ĐĂNG CỦA MINH ANH (user-2) - BÀI ĐĂNG 3 ẢNH
     PostItemModel(
       postId: '2-1',
@@ -196,12 +229,24 @@ class _FeedScreenState extends State<FeedScreen> {
   void initState() {
     super.initState();
     _pageController = PreloadPageController();
+    _horizontalController = PageController(initialPage: 1);
   }
 
   @override
   void dispose() {
     _pageController.dispose();
+    _horizontalController.dispose();
     super.dispose();
+  }
+
+  void _jumpToHorizontalPage(int page) {
+    if (_horizontalController.hasClients) {
+      _horizontalController.animateToPage(
+        page,
+        duration: const Duration(milliseconds: 320),
+        curve: Curves.easeInOutCubic,
+      );
+    }
   }
 
   // LẤY DANH SÁCH BÀI ĐĂNG THEO BỘ LỌC
@@ -216,8 +261,11 @@ class _FeedScreenState extends State<FeedScreen> {
       return _allPosts.where((p) => p.userId == _selectedFriendId).toList();
     }
 
-    // Chế độ Bạn bè: Chỉ lấy các bài của bạn bè đã kết bạn / đang chờ
-    return _allPosts.where((p) => p.friendshipStatus != FriendshipStatus.none).toList();
+    // Chế độ Bạn bè: Bao gồm bài của chính mình và bài của bạn bè
+    return _allPosts.where((p) =>
+        p.userId == 'current-user' ||
+        p.authorUserName == 'you' ||
+        p.friendshipStatus != FriendshipStatus.none).toList();
   }
 
   // Tên bạn bè đang chọn (nếu có)
@@ -227,16 +275,21 @@ class _FeedScreenState extends State<FeedScreen> {
     return friend?.name;
   }
 
-  void _openCameraSlideUp() async {
+  bool _isOpeningCamera = false;
+
+  void _openCamera({bool fromTop = true}) async {
+    if (_isOpeningCamera) return;
+    _isOpeningCamera = true;
+
     final newPost = await Navigator.of(context).push<PostItemModel>(
       PageRouteBuilder(
         opaque: false,
         barrierDismissible: false,
         pageBuilder: (context, animation, secondaryAnimation) => const CameraCaptureScreen(),
-        transitionDuration: const Duration(milliseconds: 300),
+        transitionDuration: const Duration(milliseconds: 320),
         reverseTransitionDuration: Duration.zero,
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          const begin = Offset(0.0, 1.0);
+          final begin = fromTop ? const Offset(0.0, -1.0) : const Offset(0.0, 1.0);
           const end = Offset.zero;
           const curve = Curves.easeOutCubic;
           var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
@@ -244,6 +297,8 @@ class _FeedScreenState extends State<FeedScreen> {
         },
       ),
     );
+
+    _isOpeningCamera = false;
 
     if (newPost != null && mounted) {
       setState(() {
@@ -263,64 +318,13 @@ class _FeedScreenState extends State<FeedScreen> {
     }
   }
 
-  void _showSettingsModal() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: const Color(0xFF1E1E1E),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (context) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.white24,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'Cài đặt ứng dụng',
-                  style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 16),
-                ListTile(
-                  leading: const Icon(Icons.people_outline_rounded, color: Colors.white),
-                  title: const Text('Quản lý bạn bè', style: TextStyle(color: Colors.white)),
-                  trailing: const Icon(Icons.chevron_right, color: Colors.white54),
-                  onTap: () {
-                    Navigator.pop(context);
-                    context.push('/friends');
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.notifications_none_rounded, color: Colors.white),
-                  title: const Text('Thông báo khoảnh khắc mới', style: TextStyle(color: Colors.white)),
-                  trailing: const Icon(Icons.chevron_right, color: Colors.white54),
-                  onTap: () => Navigator.pop(context),
-                ),
-                ListTile(
-                  leading: const Icon(Icons.logout_rounded, color: Colors.redAccent),
-                  title: const Text('Đăng xuất', style: TextStyle(color: Colors.redAccent)),
-                  onTap: () {
-                    Navigator.pop(context);
-                    context.go('/login');
-                  },
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
+  void _onPullDownAtTop() {
+    if (_isOpeningCamera) return;
+    HapticFeedback.mediumImpact();
+    _openCamera(fromTop: true);
   }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -329,24 +333,112 @@ class _FeedScreenState extends State<FeedScreen> {
     final bottomPadding = MediaQuery.of(context).padding.bottom;
 
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: const Color(0xFF050507),
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // 1. TẦNG NỀN: VÙNG HIỂN THỊ CHÍNH (FULL-BLEED TRÀN MÀN HÌNH - KHÔNG BỊ CẮT NGANG KHI VUỐT)
+          // 1. TẦNG NGANG PAGE VIEW: 3 MÀN HÌNH TRƯỢT LIỀN MẠCH
+          // Page 0: FriendsScreen (Vuốt từ trái sang phải)
+          // Page 1: Feed Screen (Màn hình chính)
+          // Page 2: NotificationsScreen (Vuốt từ phải sang trái)
           Positioned.fill(
-            child: GestureDetector(
-              behavior: HitTestBehavior.translucent,
-              onScaleStart: (details) {
-                _currentScale = 1.0;
+            child: PageView(
+              controller: _horizontalController,
+              onPageChanged: (index) {
+                setState(() {
+                  _currentHorizontalPage = index;
+                });
               },
+              physics: _isPureViewMode
+                  ? const NeverScrollableScrollPhysics()
+                  : const BouncingScrollPhysics(),
+              children: [
+                // PAGE 0: TRANG BẠN BÈ (FRIENDS)
+                FriendsScreen(
+                  onBackTap: () => _jumpToHorizontalPage(1),
+                ),
+
+                // PAGE 1: TRANG FEED CHÍNH
+                _buildFeedPage(displayPosts, topPadding, bottomPadding),
+
+                // PAGE 2: TRANG THÔNG BÁO (NOTIFICATIONS)
+                NotificationsScreen(
+                  onBackTap: () => _jumpToHorizontalPage(1),
+                ),
+              ],
+            ),
+          ),
+
+          // 2. TẦNG NỔI DƯỚI ĐÁY: PERSISTENT BOTTOM DOCK (Cố định xuyên suốt 3 màn hình)
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: IgnorePointer(
+              ignoring: _isPureViewMode,
+              child: AnimatedOpacity(
+                opacity: _isPureViewMode ? 0.0 : 1.0,
+                duration: const Duration(milliseconds: 250),
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.transparent,
+                        Colors.black.withValues(alpha: 0.65),
+                        Colors.black.withValues(alpha: 0.95),
+                      ],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      stops: const [0.0, 0.35, 1.0],
+                    ),
+                  ),
+                  child: SafeArea(
+                    top: false,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(0, 8, 0, 10),
+                      child: FeedBottomBar(
+                        currentScreenIndex: _currentHorizontalPage,
+                        profileAvatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200',
+                        onSettingsTap: () => context.push('/settings'),
+                        onAddFriendsTap: () => _jumpToHorizontalPage(0),
+                        onNewPostTap: () => _openCamera(fromTop: false),
+                        onHomeTap: () => _jumpToHorizontalPage(1),
+                        onNotificationTap: () => _jumpToHorizontalPage(2),
+                        onProfileTap: () => context.push('/profile'),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFeedPage(
+    List<PostItemModel> displayPosts,
+    double topPadding,
+    double bottomPadding,
+  ) {
+    return ViewfinderBackground(
+      showViewfinderMarks: false,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+        // 1. TẦNG NỀN: VÙNG HIỂN THỊ CHÍNH (FULL-BLEED TRÀN MÀN HÌNH - KHÔNG BỊ CẮT NGANG KHI VUỐT)
+        Positioned.fill(
+          child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onScaleStart: (_) => _currentScale = 1.0,
               onScaleUpdate: (details) {
                 if (details.pointerCount >= 2) {
                   _currentScale = details.scale;
                 }
               },
-              onScaleEnd: (details) {
-                // CỬ CHỈ 2 NGÓN TAY TRÊN KHU VỰC FEED / GRID:
+              onScaleEnd: (_) {
+                // CỬ CHỈ 2 NGÓN TAY TRÊN KHU VỰC FEED / GRID (Pinch / Spread):
                 if (_isGridView) {
                   // A. Đang ở Grid View: Banh 2 ngón tay ra (scale > 1.15) -> Trở về Feed 1 ảnh!
                   if (_currentScale > 1.15) {
@@ -412,42 +504,70 @@ class _FeedScreenState extends State<FeedScreen> {
                               style: TextStyle(color: Colors.white54, fontSize: 16),
                             ),
                           )
-                        : PreloadPageView.builder(
-                            key: const ValueKey('feed_page_view'),
-                            controller: _pageController,
-                            scrollDirection: Axis.vertical,
-                            preloadPagesCount: 2,
-                            itemCount: displayPosts.length,
-                            itemBuilder: (context, index) {
-                              final post = displayPosts[index];
-                              return PostCard(
-                                key: ValueKey(post.postId),
-                                post: post,
-                                isPureViewMode: _isPureViewMode,
-                                onTogglePureView: () {
-                                  setState(() {
-                                    _isPureViewMode = !_isPureViewMode;
-                                  });
-                                },
-                                onLikeToggle: (isLiked) {
-                                  setState(() {
-                                    post.isLikedByMe = isLiked;
-                                    post.likeCount += isLiked ? 1 : -1;
-                                  });
-                                },
-                                onFriendshipChanged: (newStatus) {
-                                  setState(() {
-                                    post.friendshipStatus = newStatus;
-                                  });
-                                },
-                              );
-                            },
-                          ),
+                    : NotificationListener<ScrollNotification>(
+                        onNotification: (notification) {
+                          if (_isGridView) return false;
+                          final isAtTop = !_pageController.hasClients ||
+                              (_pageController.page ?? 0) <= 0.05;
+                          if (isAtTop) {
+                            if (notification is OverscrollNotification &&
+                                notification.overscroll < -12) {
+                              _onPullDownAtTop();
+                            } else if (notification is ScrollUpdateNotification &&
+                                notification.metrics.pixels < -45) {
+                              _onPullDownAtTop();
+                            }
+                          }
+                          return false;
+                        },
+                        child: PreloadPageView.builder(
+                          key: const ValueKey('feed_page_view'),
+                          controller: _pageController,
+                          scrollDirection: Axis.vertical,
+                          preloadPagesCount: 2,
+                          itemCount: displayPosts.length,
+                          itemBuilder: (context, index) {
+                            final post = displayPosts[index];
+                            return PostCard(
+                              key: ValueKey(post.postId),
+                              post: post,
+                              isPureViewMode: _isPureViewMode,
+                              onTogglePureView: () {
+                                setState(() {
+                                  _isPureViewMode = !_isPureViewMode;
+                                });
+                              },
+                              onLikeToggle: (isLiked) {
+                                setState(() {
+                                  post.isLikedByMe = isLiked;
+                                  post.likeCount += isLiked ? 1 : -1;
+                                });
+                              },
+                              onFriendshipChanged: (newStatus) {
+                                setState(() {
+                                  post.friendshipStatus = newStatus;
+                                });
+                              },
+                              onDeletePost: () {
+                                setState(() {
+                                  _allPosts.removeWhere((p) => p.postId == post.postId);
+                                });
+                                AppToast.showInfo(context, 'Đã xóa khoảnh khắc thành công');
+                              },
+                              onHidePost: () {
+                                setState(() {
+                                  _allPosts.removeWhere((p) => p.postId == post.postId);
+                                });
+                              },
+                            );
+                          },
+                        ),
+                      ),
               ),
             ),
           ),
 
-          // 2. TẦNG NỔI TRÊN CÙNG: HEADER & TIÊU ĐỀ (GRADIENT SCRIM MỜ ĐỂ CHỮ RÕ NÉT)
+          // 2. TẦNG NỔI TRÊN CÙNG: TIÊU ĐỀ VIẾT TAY (DÒNG 1) & CỤM LỌC FEED FILTER BAR (DÒNG 2)
           Positioned(
             top: 0,
             left: 0,
@@ -461,13 +581,13 @@ class _FeedScreenState extends State<FeedScreen> {
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        Colors.black.withValues(alpha: 0.92),
-                        Colors.black.withValues(alpha: 0.65),
+                        Colors.black.withValues(alpha: 0.94),
+                        Colors.black.withValues(alpha: 0.70),
                         Colors.transparent,
                       ],
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
-                      stops: const [0.0, 0.6, 1.0],
+                      stops: const [0.0, 0.75, 1.0],
                     ),
                   ),
                   child: SafeArea(
@@ -475,42 +595,69 @@ class _FeedScreenState extends State<FeedScreen> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        // Cài đặt - New Post - Profile
+                        // DÒNG 1: TIÊU ĐỀ VIẾT TAY DANCING SCRIPT Ở VỊ TRÍ NÚT "ĐĂNG BÀI" CŨ (ĐỈNH GIỮA)
                         Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 8, 20, 2),
-                          child: FeedHeader(
-                            onSettingsTap: _showSettingsModal,
-                            onNewPostTap: _openCameraSlideUp,
-                            onProfileTap: () => context.push('/profile'),
-                          ),
-                        ),
-
-                        // TIÊU ĐỀ FONT DANCING SCRIPT TINH TẾ (KHÁM PHÁ / BẠN BÈ / TÊN BẠN)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 2, bottom: 12),
-                          child: AnimatedSwitcher(
-                            duration: const Duration(milliseconds: 350),
-                            child: Text(
-                              _isExploreActive
-                                  ? 'Khám phá'
-                                  : (_selectedFriendName != null ? _selectedFriendName! : 'Bạn bè'),
-                              key: ValueKey('title_${_isExploreActive}_$_selectedFriendId'),
-                              style: GoogleFonts.dancingScript(
-                                fontSize: 28,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.white,
-                                letterSpacing: 0.5,
-                                shadows: [
-                                  Shadow(
-                                    color: AppColors.primaryYellow.withValues(alpha: 0.35),
-                                    blurRadius: 10,
-                                    offset: const Offset(0, 1),
-                                  ),
-                                ],
+                          padding: const EdgeInsets.only(top: 6, bottom: 4),
+                          child: Center(
+                            child: AnimatedSwitcher(
+                              duration: const Duration(milliseconds: 350),
+                              child: Text(
+                                _isExploreActive
+                                    ? 'Khám phá'
+                                    : (_selectedFriendName != null ? _selectedFriendName! : 'Bạn bè'),
+                                key: ValueKey('title_${_isExploreActive}_$_selectedFriendId'),
+                                style: GoogleFonts.dancingScript(
+                                  fontSize: 30,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                  letterSpacing: 0.5,
+                                  shadows: [
+                                    Shadow(
+                                      color: AppColors.primaryYellow.withValues(alpha: 0.4),
+                                      blurRadius: 12,
+                                      offset: const Offset(0, 1),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
                         ),
+
+                        // DÒNG 2: NGUYÊN CỤM LỌC (KHÁM PHÁ - DẢI BẠN BÈ - GRID) Ở CHỖ TIÊU ĐỀ CŨ
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: FeedFilterBar(
+                            isExploreActive: _isExploreActive,
+                            onExploreToggle: () {
+                              setState(() {
+                                _isExploreActive = !_isExploreActive;
+                                _selectedFriendId = null;
+                              });
+                              if (!_isGridView && _pageController.hasClients) {
+                                _pageController.jumpToPage(0);
+                              }
+                            },
+                            friends: _friends,
+                            selectedFriendId: _selectedFriendId,
+                            onFriendSelected: (friendId) {
+                              setState(() {
+                                _isExploreActive = false; // Tắt khám phá khi chọn bạn cụ thể
+                                _selectedFriendId = friendId;
+                              });
+                              if (!_isGridView && _pageController.hasClients) {
+                                _pageController.jumpToPage(0);
+                              }
+                            },
+                            isGridView: _isGridView,
+                            onGridToggle: () {
+                              setState(() {
+                                _isGridView = !_isGridView;
+                                _isPureViewMode = false;
+                              });
+                            },
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -519,70 +666,7 @@ class _FeedScreenState extends State<FeedScreen> {
             ),
           ),
 
-          // 3. TẦNG NỔI DƯỚI ĐÁY: NHÓM NÚT BẠN BÈ / KHÁM PHÁ / GRID (GRADIENT SCRIM MỜ ĐÁY)
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: IgnorePointer(
-              ignoring: _isPureViewMode,
-              child: AnimatedOpacity(
-                opacity: _isPureViewMode ? 0.0 : 1.0,
-                duration: const Duration(milliseconds: 250),
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        Colors.transparent,
-                        Colors.black.withValues(alpha: 0.65),
-                        Colors.black.withValues(alpha: 0.95),
-                      ],
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      stops: const [0.0, 0.35, 1.0],
-                    ),
-                  ),
-                  child: SafeArea(
-                    top: false,
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(0, 14, 0, 8),
-                      child: FeedFilterBar(
-                        isExploreActive: _isExploreActive,
-                        onExploreToggle: () {
-                          setState(() {
-                            _isExploreActive = !_isExploreActive;
-                            _selectedFriendId = null;
-                          });
-                          if (!_isGridView && _pageController.hasClients) {
-                            _pageController.jumpToPage(0);
-                          }
-                        },
-                        friends: _friends,
-                        selectedFriendId: _selectedFriendId,
-                        onFriendSelected: (friendId) {
-                          setState(() {
-                            _isExploreActive = false; // Tắt khám phá khi chọn bạn cụ thể
-                            _selectedFriendId = friendId;
-                          });
-                          if (!_isGridView && _pageController.hasClients) {
-                            _pageController.jumpToPage(0);
-                          }
-                        },
-                        isGridView: _isGridView,
-                        onGridToggle: () {
-                          setState(() {
-                            _isGridView = !_isGridView;
-                            _isPureViewMode = false;
-                          });
-                        },
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
+      ],
       ),
     );
   }
