@@ -66,5 +66,16 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>PicSocial cần quyền sử dụng máy ảnh để bạn chụp và chia sẻ khoảnh khắc với bạn bè.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>PicSocial cần quyền truy cập thư viện ảnh để bạn tải ảnh lên mạng xã hội.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>PicSocial cần quyền micro khi sử dụng tính năng quay video.</string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
 </dict>
 </plist>

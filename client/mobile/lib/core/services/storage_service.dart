@@ -8,6 +8,8 @@ class StorageService {
     await _storage.write(key: _tokenKey, value: token);
   }
 
+  static Future<void> setToken(String token) => saveToken(token);
+
   static Future<String?> getToken() async {
     return await _storage.read(key: _tokenKey);
   }

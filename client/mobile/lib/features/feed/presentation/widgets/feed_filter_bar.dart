@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:solar_icons/solar_icons.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/widgets/app_button.dart';
 
 class FriendFilterItem {
   final String userId;
@@ -36,92 +39,6 @@ class FeedFilterBar extends StatelessWidget {
     required this.onGridToggle,
   });
 
-  // HÀM BUILD NÚT CHUNG CHO CẢ "KHÁM PHÁ" VÀ "BẠN BÈ" VỚI TRANSITION MƯỢT MÀ NHƯ BƠ (400ms EASE-IN-OUT-CUBIC)
-  Widget _buildModeButton({
-    required bool isActive,
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 400),
-        curve: Curves.easeInOutCubic,
-        height: 40,
-        padding: EdgeInsets.symmetric(
-          horizontal: isActive ? 14 : 10,
-          vertical: 8,
-        ),
-        decoration: BoxDecoration(
-          color: isActive
-              ? AppColors.primaryYellow
-              : Colors.white.withValues(alpha: 0.12),
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: isActive
-              ? [
-                  BoxShadow(
-                    color: AppColors.primaryYellow.withValues(alpha: 0.45),
-                    blurRadius: 10,
-                    offset: const Offset(0, 2),
-                  ),
-                ]
-              : null,
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            TweenAnimationBuilder<Color?>(
-              duration: const Duration(milliseconds: 350),
-              curve: Curves.easeInOutCubic,
-              tween: ColorTween(
-                begin: isActive ? Colors.white70 : Colors.black,
-                end: isActive ? Colors.black : Colors.white70,
-              ),
-              builder: (context, color, child) {
-                return Icon(
-                  icon,
-                  color: color,
-                  size: 20,
-                );
-              },
-            ),
-            // HIỆU ỨNG MỞ/ĐÓNG CHỮ MƯỢT MÀ BẰNG CLIPRECT + ANIMATEDALIGN + ANIMATEDOPACITY
-            ClipRect(
-              child: AnimatedAlign(
-                alignment: Alignment.centerLeft,
-                duration: const Duration(milliseconds: 400),
-                curve: Curves.easeInOutCubic,
-                widthFactor: isActive ? 1.0 : 0.0,
-                child: AnimatedOpacity(
-                  duration: const Duration(milliseconds: 320),
-                  curve: Curves.easeInOut,
-                  opacity: isActive ? 1.0 : 0.0,
-                  child: Padding(
-                    padding: const EdgeInsets.only(left: 6),
-                    child: Text(
-                      label,
-                      maxLines: 1,
-                      softWrap: false,
-                      overflow: TextOverflow.clip,
-                      style: const TextStyle(
-                        color: Colors.black,
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final bool isFriendsActive = !isExploreActive && selectedFriendId == null;
@@ -131,10 +48,10 @@ class FeedFilterBar extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 14),
       child: Row(
         children: [
-          // 1. NÚT KHÁM PHÁ (ACTIVE THÌ HIỆN CHỮ, INACTIVE CHỈ HIỆN ICON)
-          _buildModeButton(
+          // 1. NÚT KHÁM PHÁ (ACTIVE THÌ HIỆN CHỮ, INACTIVE CHỈ HIỆN ICON) - XÚC GIÁC NẢY LÒ XO
+          _TactileModeButton(
             isActive: isExploreActive,
-            icon: Icons.explore_rounded,
+            icon: isExploreActive ? SolarIconsBold.compass : SolarIconsOutline.compass,
             label: 'Khám phá',
             onTap: onExploreToggle,
           ),
@@ -156,13 +73,15 @@ class FeedFilterBar extends StatelessWidget {
               scrollDirection: Axis.horizontal,
               physics: const BouncingScrollPhysics(),
               children: [
-                // NÚT BẠN BÈ (KÍCH THƯỚC VÀ KIỂU DÁNG TO BẰNG NÚT KHÁM PHÁ)
+                // NÚT BẠN BÈ (KÍCH THƯỚC VÀ KIỂU DÁNG TO BẰNG NÚT KHÁM PHÁ) - XÚC GIÁC NẢY LÒ XO
                 Padding(
                   padding: const EdgeInsets.only(right: 8),
                   child: Center(
-                    child: _buildModeButton(
+                    child: _TactileModeButton(
                       isActive: isFriendsActive,
-                      icon: Icons.people_alt_rounded,
+                      icon: isFriendsActive
+                          ? SolarIconsBold.usersGroupTwoRounded
+                          : SolarIconsOutline.usersGroupTwoRounded,
                       label: 'Bạn bè',
                       onTap: () => onFriendSelected(null),
                     ),
@@ -224,28 +143,135 @@ class FeedFilterBar extends StatelessWidget {
 
           const SizedBox(width: 6),
 
-          // 3. NÚT ICON CHUYỂN ĐỔI GRID / FEED
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: isGridView
-                  ? AppColors.primaryYellow.withValues(alpha: 0.25)
-                  : Colors.white.withValues(alpha: 0.12),
-              shape: BoxShape.circle,
-            ),
-            child: IconButton(
-              padding: EdgeInsets.zero,
-              icon: Icon(
-                isGridView ? Icons.view_agenda_rounded : Icons.grid_view_rounded,
-                color: isGridView ? AppColors.primaryYellow : Colors.white,
-                size: 20,
-              ),
-              tooltip: isGridView ? 'Xem dạng Vuốt' : 'Xem dạng Lưới',
-              onPressed: onGridToggle,
+          // 3. NÚT ICON CHUYỂN ĐỔI GRID / FEED - Xúc giác nảy lò xo & viền bắt sáng
+          AppIconButton(
+            size: 40,
+            isSelected: isGridView,
+            activeColor: AppColors.primaryOlive,
+            tooltip: isGridView ? 'Xem dạng Vuốt' : 'Xem dạng Lưới',
+            onPressed: onGridToggle,
+            icon: Icon(
+              isGridView ? SolarIconsOutline.gallery : SolarIconsOutline.widget_4,
+              color: isGridView ? Colors.black : Colors.white70,
+              size: 20,
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Nút chuyển đổi chế độ lọc (Khám phá / Bạn bè) với độ sâu xúc giác & đàn hồi lò xo
+class _TactileModeButton extends StatefulWidget {
+  final bool isActive;
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  const _TactileModeButton({
+    required this.isActive,
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  @override
+  State<_TactileModeButton> createState() => _TactileModeButtonState();
+}
+
+class _TactileModeButtonState extends State<_TactileModeButton> {
+  bool _isPressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isActive = widget.isActive;
+
+    final gradient = isActive
+        ? const LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFF5F821C), Color(0xFF45610F)],
+          )
+        : const LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFF2C2C32), Color(0xFF1C1C20)],
+          );
+
+    final border = isActive
+        ? Border.all(
+            color: const Color(0xFF7FA32E).withValues(alpha: 0.5),
+            width: 0.9,
+          )
+        : null;
+
+    return AnimatedScale(
+      scale: _isPressed ? 0.92 : 1.0,
+      duration: const Duration(milliseconds: 110),
+      curve: Curves.easeOutCubic,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTapDown: (_) {
+          HapticFeedback.lightImpact();
+          setState(() => _isPressed = true);
+        },
+        onTapUp: (_) => setState(() => _isPressed = false),
+        onTapCancel: () => setState(() => _isPressed = false),
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 320),
+          curve: Curves.easeInOutCubic,
+          height: 40,
+          padding: EdgeInsets.symmetric(
+            horizontal: isActive ? 14 : 10,
+            vertical: 8,
+          ),
+          decoration: BoxDecoration(
+            gradient: gradient,
+            borderRadius: BorderRadius.circular(20),
+            border: border,
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Icon(
+                widget.icon,
+                color: isActive ? Colors.black : Colors.white70,
+                size: 20,
+              ),
+              ClipRect(
+                child: AnimatedAlign(
+                  alignment: Alignment.centerLeft,
+                  duration: const Duration(milliseconds: 320),
+                  curve: Curves.easeInOutCubic,
+                  widthFactor: isActive ? 1.0 : 0.0,
+                  child: AnimatedOpacity(
+                    duration: const Duration(milliseconds: 260),
+                    curve: Curves.easeInOut,
+                    opacity: isActive ? 1.0 : 0.0,
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 6),
+                      child: Text(
+                        widget.label,
+                        maxLines: 1,
+                        softWrap: false,
+                        overflow: TextOverflow.clip,
+                        style: TextStyle(
+                          color: isActive ? Colors.black : Colors.white,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.2,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

@@ -45,7 +45,9 @@ dependencies:
   flutter_bloc: ^9.1.1
   go_router: ^18.1.4
   camera: ^0.12.2
-  google_fonts: ^9.0.0
+  path_provider: ^2.1.5
+  google_fonts: ^6.2.1
+  solar_icons: ^0.2.0
 
 dev_dependencies:
   flutter_test:
@@ -68,6 +70,9 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+
+  assets:
+    - assets/presets/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

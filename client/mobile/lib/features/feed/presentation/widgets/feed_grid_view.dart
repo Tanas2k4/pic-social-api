@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:solar_icons/solar_icons.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../data/models/post_item_model.dart';
 
@@ -105,7 +106,7 @@ class FeedGridView extends StatelessWidget {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(Icons.favorite_rounded, color: Colors.redAccent, size: 12),
+                              const Icon(SolarIconsBold.heart, color: Colors.redAccent, size: 12),
                               const SizedBox(width: 3),
                               Text(
                                 '${post.likeCount}',
@@ -142,7 +143,7 @@ class FeedGridView extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: const Icon(
-                                Icons.collections_rounded,
+                                SolarIconsBold.galleryWide,
                                 color: Colors.white,
                                 size: 11,
                               ),
